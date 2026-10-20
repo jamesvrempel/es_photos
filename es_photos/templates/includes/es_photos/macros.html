@@ -1,0 +1,74 @@
+{#- Shared building blocks for the ES Photos gallery -#}
+
+{% macro avatar(p, size=28) -%}
+{%- if p.profile_image -%}
+<img class="esp-avatar" src="{{ (p.profile_image)|e }}" alt="" width="{{ size }}" height="{{ size }}" loading="lazy">
+{%- else -%}
+<span class="esp-avatar esp-avatar-initials" style="width:{{ size }}px;height:{{ size }}px">{{ (p.initials)|e }}</span>
+{%- endif -%}
+{%- endmacro %}
+
+{% macro privacy_badge(privacy) -%}
+{%- if privacy and privacy != "Public" -%}
+<span class="esp-badge" title="{{ _('Visible to') }}: {{ (privacy)|e }}">
+{%- if privacy == "Only Me" %}🔒{% elif privacy == "Group" %}👥{% else %}🤝{% endif %} {{ _(privacy) }}</span>
+{%- endif -%}
+{%- endmacro %}
+
+{% macro album_grid(albums, base) -%}
+<div class="esp-albums">
+{%- for a in albums %}
+  <a class="esp-album" href="{{ a.url }}">
+    <span class="esp-album-cover">
+      {%- if a.cover %}<img src="{{ (a.cover)|e }}" alt="" loading="lazy">{% else %}<span class="esp-album-empty">🖼️</span>{% endif -%}
+      {%- if a.subs %}<span class="esp-album-subs">{{ a.subs }} {{ _("albums") if a.subs > 1 else _("album") }}</span>{% endif -%}
+    </span>
+    <span class="esp-album-meta">
+      <span class="esp-album-title">{{ (a.title)|e }}</span>
+      <span class="esp-muted">{{ a.count }} {{ _("photos") if a.count != 1 else _("photo") }} {{ privacy_badge(a.privacy) }}</span>
+    </span>
+  </a>
+{%- endfor %}
+</div>
+{%- endmacro %}
+
+{% macro photo_grid(photos, base, photo_src, album=None) -%}
+<div class="esp-grid" data-esp-grid>
+{%- for p in photos %}
+  {%- set w = p.width or 3 %}{% set h = p.height or 2 %}
+  <a class="esp-tile{% if p.media_type == 'Video' %} esp-tile-video{% endif %}"
+     href="{{ base }}/photo/{{ p.name }}{% if album %}?album={{ album }}{% endif %}"
+     style="--w:{{ w }};--h:{{ h }}" data-index="{{ loop.index0 }}" data-name="{{ p.name }}"
+     title="{{ (p.title or '')|e }}">
+    <i style="padding-bottom:{{ (h / w * 100) | round(3) }}%"></i>
+    <img src="{{ photo_src(p, 'thumb') or '' }}" alt="{{ (p.title or '')|e }}" loading="lazy" decoding="async">
+    <span class="esp-tile-cap">
+      <span class="esp-tile-title">{{ (p.title or '')|e }}</span>
+      <span class="esp-tile-stats">{% if p.view_count %}👁 {{ p.view_count }}{% endif %}{% if p.like_count %} · ❤ {{ p.like_count }}{% endif %}{% if p.comment_count %} · 💬 {{ p.comment_count }}{% endif %}</span>
+    </span>
+  </a>
+{%- endfor %}
+</div>
+{%- endmacro %}
+
+{% macro pager(pg) -%}
+{%- if pg and pg.pages > 1 -%}
+<nav class="esp-pager">
+  {%- if pg.prev_url %}<a class="es-btn" href="{{ pg.prev_url }}">‹ {{ _("Previous") }}</a>{% endif -%}
+  <span class="esp-muted">{{ _("Page {0} of {1}").format(pg.page, pg.pages) }}</span>
+  {%- if pg.next_url %}<a class="es-btn" href="{{ pg.next_url }}">{{ _("Next") }} ›</a>{% endif -%}
+</nav>
+{%- endif -%}
+{%- endmacro %}
+
+{% macro sort_select(current) -%}
+<label class="esp-sort">
+  <span class="esp-muted">{{ _("Sort") }}</span>
+  <select data-esp-sort>
+    <option value="">{{ _("Album default") }}</option>
+    {%- for key, label in [("newest", _("Newest added")), ("oldest", _("Oldest added")), ("taken", _("Date taken ↓")), ("taken-asc", _("Date taken ↑")), ("title", _("Title")), ("views", _("Most viewed"))] %}
+    <option value="{{ key }}"{% if current == key %} selected{% endif %}>{{ label }}</option>
+    {%- endfor %}
+  </select>
+</label>
+{%- endmacro %}

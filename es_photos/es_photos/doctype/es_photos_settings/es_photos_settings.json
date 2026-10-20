@@ -1,0 +1,228 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-18 20:30:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "sb_general",
+  "gallery_title",
+  "tagline",
+  "photos_per_page",
+  "default_privacy",
+  "cb_g1",
+  "allow_member_albums",
+  "max_upload_mb",
+  "enable_downloads",
+  "show_exif",
+  "enable_comments",
+  "enable_reactions",
+  "show_community_albums",
+  "feed_preview_photos",
+  "sb_import",
+  "piwigo_url",
+  "piwigo_username",
+  "piwigo_password",
+  "cb_i1",
+  "import_owner",
+  "import_mode",
+  "download_size"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb_general",
+   "fieldtype": "Section Break",
+   "idx": 1,
+   "label": "Gallery"
+  },
+  {
+   "default": "Gallery",
+   "fieldname": "gallery_title",
+   "fieldtype": "Data",
+   "idx": 2,
+   "label": "Gallery Title"
+  },
+  {
+   "fieldname": "tagline",
+   "fieldtype": "Data",
+   "idx": 3,
+   "label": "Tagline"
+  },
+  {
+   "default": "48",
+   "fieldname": "photos_per_page",
+   "fieldtype": "Int",
+   "idx": 4,
+   "label": "Photos Per Page"
+  },
+  {
+   "default": "Public",
+   "fieldname": "default_privacy",
+   "fieldtype": "Select",
+   "idx": 5,
+   "label": "Default Privacy",
+   "options": "Public\nConnections\nGroup\nOnly Me"
+  },
+  {
+   "fieldname": "cb_g1",
+   "fieldtype": "Column Break",
+   "idx": 6
+  },
+  {
+   "default": "1",
+   "description": "Users with the Social User role can create their own albums. Gallery Managers always can.",
+   "fieldname": "allow_member_albums",
+   "fieldtype": "Check",
+   "idx": 7,
+   "label": "Members can create albums and upload"
+  },
+  {
+   "default": "0",
+   "description": "0 = use ES Social Settings \u2192 Max upload size.",
+   "fieldname": "max_upload_mb",
+   "fieldtype": "Int",
+   "idx": 8,
+   "label": "Max upload size (MB)"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_downloads",
+   "fieldtype": "Check",
+   "idx": 9,
+   "label": "Enable Downloads"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_exif",
+   "fieldtype": "Check",
+   "idx": 10,
+   "label": "Show camera / EXIF details"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_comments",
+   "fieldtype": "Check",
+   "idx": 11,
+   "label": "Enable Comments"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_reactions",
+   "fieldtype": "Check",
+   "idx": 12,
+   "label": "Enable Reactions"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_community_albums",
+   "fieldtype": "Check",
+   "idx": 13,
+   "label": "Show ES Social member albums on gallery home"
+  },
+  {
+   "default": "4",
+   "description": "How many photos to include when an album is posted to the ES Social feed.",
+   "fieldname": "feed_preview_photos",
+   "fieldtype": "Int",
+   "idx": 14,
+   "label": "Photos in feed post"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "sb_import",
+   "fieldtype": "Section Break",
+   "idx": 15,
+   "label": "Piwigo import"
+  },
+  {
+   "default": "https://photos.tarrant-trading.com",
+   "fieldname": "piwigo_url",
+   "fieldtype": "Data",
+   "idx": 16,
+   "label": "Piwigo site URL"
+  },
+  {
+   "description": "Optional. Only needed to import private albums.",
+   "fieldname": "piwigo_username",
+   "fieldtype": "Data",
+   "idx": 17,
+   "label": "Piwigo Username"
+  },
+  {
+   "fieldname": "piwigo_password",
+   "fieldtype": "Password",
+   "idx": 18,
+   "label": "Piwigo Password"
+  },
+  {
+   "fieldname": "cb_i1",
+   "fieldtype": "Column Break",
+   "idx": 19
+  },
+  {
+   "default": "Administrator",
+   "description": "Imported albums are owned by this user.",
+   "fieldname": "import_owner",
+   "fieldtype": "Link",
+   "idx": 20,
+   "label": "Import Owner",
+   "options": "User"
+  },
+  {
+   "default": "Link remote images",
+   "description": "Link: images keep being served by Piwigo (fast, no disk). Download: copies files here so Piwigo can be retired.",
+   "fieldname": "import_mode",
+   "fieldtype": "Select",
+   "idx": 21,
+   "label": "Import Mode",
+   "options": "Link remote images\nDownload into this site"
+  },
+  {
+   "default": "XX-Large (about 1656px)",
+   "depends_on": "eval:doc.import_mode=='Download into this site'",
+   "fieldname": "download_size",
+   "fieldtype": "Select",
+   "idx": 22,
+   "label": "Download Size",
+   "options": "XX-Large (about 1656px)\nOriginal"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-10-18 20:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "ES Photos",
+ "name": "ES Photos Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 0,
+   "print": 1,
+   "read": 1,
+   "report": 0,
+   "role": "System Manager",
+   "share": 0,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 0,
+   "print": 1,
+   "read": 1,
+   "report": 0,
+   "role": "Gallery Manager",
+   "share": 0,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
