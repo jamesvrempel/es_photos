@@ -1,5 +1,21 @@
+# Python
 __pycache__/
-*.pyc
-.ruff_cache/
-node_modules/
+*.py[cod]
 *.egg-info/
+*.egg
+build/
+dist/
+.venv/
+.ruff_cache/
+.pytest_cache/
+
+# Node / assets
+node_modules/
+es_photos/public/dist/
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+tags

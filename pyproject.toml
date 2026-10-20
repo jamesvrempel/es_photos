@@ -3,11 +3,23 @@ name = "es_photos"
 authors = [
     { name = "Enterprise Systems Australia", email = "james.rempel@enterprisesystems.com.au" }
 ]
-description = "Photo gallery for ES Social — albums, keywords, EXIF and slideshows"
+description = "Piwigo-style photo library for ES Social (Frappe v15): albums, keywords, EXIF, slideshows"
 requires-python = ">=3.10"
 readme = "README.md"
+license = { file = "LICENSE" }
+keywords = ["frappe", "erpnext", "photos", "gallery", "es-social"]
+classifiers = [
+    "Framework :: Frappe",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+]
 dynamic = ["version"]
-dependencies = []
+# Pillow ships with Frappe; listed so a stand-alone install is explicit.
+dependencies = ["Pillow"]
+
+[project.urls]
+Homepage = "https://github.com/jamesvrempel/es_photos"
+Issues = "https://github.com/jamesvrempel/es_photos/issues"
 
 [build-system]
 requires = ["flit_core >=3.4,<4"]
@@ -24,5 +36,10 @@ target-version = "py310"
 select = ["F", "E", "W", "I", "B"]
 ignore = ["E501", "W191", "E101", "B017"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["es_photos"]
+known-third-party = ["frappe"]
+
 [tool.ruff.format]
 indent-style = "tab"
+quote-style = "double"

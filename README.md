@@ -1,10 +1,25 @@
 # ES Photos
 
-A photo gallery app for Frappe v15 that lives inside **ES Social** at `/social/gallery`.
-A Piwigo-style photo library — albums and sub-albums, keywords, most visited / recent /
-random / calendar views, search, EXIF, slideshow, downloads, videos — plugged into ES
-Social's people, privacy and feed. The gallery runs full screen (full browser width; the
+[![CI](https://github.com/jamesvrempel/es_photos/actions/workflows/ci.yml/badge.svg)](https://github.com/jamesvrempel/es_photos/actions/workflows/ci.yml)
+![Frappe v15](https://img.shields.io/badge/Frappe-v15-0089FF)
+![License: MIT](https://img.shields.io/badge/license-MIT-green)
+
+A Piwigo-style photo library for Frappe v15 that lives inside **ES Social** at
+`/social/gallery`: albums and sub-albums, keywords, most visited / recent / random /
+calendar views, search, EXIF, slideshow, downloads and YouTube/Vimeo videos, plugged into
+ES Social's people, privacy and feed. The gallery runs full screen (full browser width; the
 site navbar and footer stay).
+
+## Requirements
+
+| | Version |
+|---|---|
+| Frappe | v15 (`version-15` branch) |
+| Python | 3.10 – 3.12 |
+| [ES Social](https://github.com/jamesvrempel/es_social) | 0.9.7 or later recommended (0.9.6 works; the Gallery nav link is then added by script) |
+| Pillow | ships with Frappe |
+
+No ERPNext dependency.
 
 ## How it fits into ES Social
 
@@ -23,7 +38,7 @@ site navbar and footer stay).
 | Social Album | ES Social's own member albums appear on the gallery home under "From the community". |
 | Reactions | Same seven reaction types as ES Social posts. |
 
-`es_social` is listed in `required_apps`, so bench installs it first.
+`required_apps = ["frappe", "jamesvrempel/es_social"]`, so `install-app es_photos` installs ES Social on the site first, and `bench get-app --resolve-deps` can fetch it from GitHub.
 
 ## DocTypes (module "ES Photos")
 
@@ -59,19 +74,57 @@ Uploads get EXIF read and three JPEG renditions (720 / 1600 / 2560 px) written t
 
 ## Install
 
-Needs ES Social. Upgrade ES Social to **0.9.7** first (adds the nav-links hook and a
-phone-friendly nav), then install ES Photos:
+ES Social must be in the bench first. It is a private repository, so fetch it with an
+account (or deploy key / token) that can read it:
 
 ```bash
 cd ~/frappe-bench
-bench get-app https://github.com/<you>/es_photos   # or copy this folder into apps/
-bench --site erp.enterprisesystems.com.au install-app es_photos
-bench --site erp.enterprisesystems.com.au migrate
+
+# 1. ES Social (skip if already installed; upgrade to 0.9.7+ if older)
+bench get-app https://github.com/jamesvrempel/es_social --branch main
+
+# 2. ES Photos
+bench get-app https://github.com/jamesvrempel/es_photos --branch main
+
+# 3. Install on the site (installs es_social first if it isn't yet)
+bench --site <your-site> install-app es_photos
+bench --site <your-site> migrate
 bench build --app es_photos
-bench restart
+bench restart          # or: sudo supervisorctl restart all
 ```
 
-Then open **ES Photos Settings** in the desk to check the defaults.
+`bench get-app --resolve-deps https://github.com/jamesvrempel/es_photos` fetches ES Social
+automatically when your git credentials can read it.
+
+After installing:
+
+1. Desk → **ES Photos** workspace → **Settings**: check gallery title, page size, upload
+   size, downloads, EXIF, comments and reactions.
+2. Give gallery admins the **Gallery Manager** role (created on install). Members with
+   ES Social's **Social User** role can create albums and upload when
+   "Members can create albums and upload" is ticked.
+3. Open `/social/gallery`.
+
+### Updating
+
+```bash
+cd ~/frappe-bench
+bench update --apps es_photos --pull     # or: cd apps/es_photos && git pull
+bench --site <your-site> migrate
+bench build --app es_photos && bench restart
+```
+
+### Production notes
+
+* Uploaded originals and renditions are public files under `sites/<site>/public/files/`
+  (`/files/es_photos/` for renditions); include them in backups
+  (`bench --site <site> backup --with-files`).
+* Allow large uploads through nginx: `client_max_body_size` must be at least the
+  configured max upload size (ES Photos Settings, or ES Social Settings when 0).
+* Static assets are cache-busted with `?v=<app version / file mtime>`, so Cloudflare or a
+  long nginx `max-age` will not serve stale CSS/JS after an update.
+* The daily scheduler job `es_photos.gallery.recount_all` keeps album counts right; make
+  sure the scheduler is enabled (`bench --site <site> enable-scheduler`).
 
 ## Desk workspace
 
@@ -87,9 +140,38 @@ Photo Import Log DocType and table and clears only the Piwigo fields (URL, usern
 password, import options) from ES Photos Settings — every other setting is kept as it is.
 Albums and photos that were imported stay where they are.
 
-## Notes
+## Development
 
+```bash
+cd ~/frappe-bench/apps/es_photos
+pip install pre-commit && pre-commit install   # ruff + basic checks on commit
+ruff check .
+
+# tests need a throw-away site with es_social + es_photos installed
+bench --site test.local set-config allow_tests true
+bench --site test.local run-tests --app es_photos
+```
+
+Tests (`es_photos/tests/`) cover the privacy matrix (public / connections / group /
+only me / nested albums / blocks / suspension), comment moderation, reactions, feed sharing
+and the image helpers.
+
+### CI
+
+`.github/workflows/ci.yml` runs on pushes and pull requests to `main` / `develop`:
+
+* **Lint** — ruff, compile check, JSON validity (always).
+* **Server tests** — Frappe v15 bench with MariaDB 10.6 and Redis, installs ES Social and
+  ES Photos and runs the test suite. Because ES Social is private, add a repository secret
+  **`ES_SOCIAL_TOKEN`** (fine-grained personal access token with read-only *Contents* access
+  to `jamesvrempel/es_social`). Without it the job is skipped with a notice.
+
+## Notes
 
 * Album and photo pages are server-rendered (good for sharing previews: Open Graph tags are set).
 * View counts increment once per visitor per hour.
 * A daily job recounts album totals; **Recount albums** in settings does it on demand.
+
+## Licence
+
+MIT — see [LICENSE](LICENSE).
