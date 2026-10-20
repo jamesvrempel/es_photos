@@ -9,6 +9,7 @@
   "gallery_title",
   "tagline",
   "photos_per_page",
+  "slideshow_seconds",
   "default_privacy",
   "cb_g1",
   "allow_member_albums",
@@ -48,24 +49,33 @@
    "label": "Photos Per Page"
   },
   {
+   "default": "5",
+   "description": "Default time each photo is shown in a slideshow (1–120). Visitors can change it in the slideshow toolbar; their browser remembers their choice.",
+   "fieldname": "slideshow_seconds",
+   "fieldtype": "Int",
+   "label": "Slideshow seconds per photo",
+   "non_negative": 1,
+   "idx": 5
+  },
+  {
    "default": "Public",
    "fieldname": "default_privacy",
    "fieldtype": "Select",
-   "idx": 5,
+   "idx": 6,
    "label": "Default Privacy",
    "options": "Public\nConnections\nGroup\nOnly Me"
   },
   {
    "fieldname": "cb_g1",
    "fieldtype": "Column Break",
-   "idx": 6
+   "idx": 7
   },
   {
    "default": "1",
    "description": "Users with the Social User role can create their own albums. Gallery Managers always can.",
    "fieldname": "allow_member_albums",
    "fieldtype": "Check",
-   "idx": 7,
+   "idx": 8,
    "label": "Members can create albums and upload"
   },
   {
@@ -73,42 +83,42 @@
    "description": "0 = use ES Social Settings → Max upload size.",
    "fieldname": "max_upload_mb",
    "fieldtype": "Int",
-   "idx": 8,
+   "idx": 9,
    "label": "Max upload size (MB)"
   },
   {
    "default": "1",
    "fieldname": "enable_downloads",
    "fieldtype": "Check",
-   "idx": 9,
+   "idx": 10,
    "label": "Enable Downloads"
   },
   {
    "default": "1",
    "fieldname": "show_exif",
    "fieldtype": "Check",
-   "idx": 10,
+   "idx": 11,
    "label": "Show camera / EXIF details"
   },
   {
    "default": "1",
    "fieldname": "enable_comments",
    "fieldtype": "Check",
-   "idx": 11,
+   "idx": 12,
    "label": "Enable Comments"
   },
   {
    "default": "1",
    "fieldname": "enable_reactions",
    "fieldtype": "Check",
-   "idx": 12,
+   "idx": 13,
    "label": "Enable Reactions"
   },
   {
    "default": "1",
    "fieldname": "show_community_albums",
    "fieldtype": "Check",
-   "idx": 13,
+   "idx": 14,
    "label": "Show ES Social member albums on gallery home"
   },
   {
@@ -116,13 +126,13 @@
    "description": "How many photos to include when an album is posted to the ES Social feed.",
    "fieldname": "feed_preview_photos",
    "fieldtype": "Int",
-   "idx": 14,
+   "idx": 15,
    "label": "Photos in feed post"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-10-20 16:30:00.000000",
+ "modified": "2026-10-20 18:30:00.000000",
  "modified_by": "Administrator",
  "module": "ES Photos",
  "name": "ES Photos Settings",

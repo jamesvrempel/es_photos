@@ -437,6 +437,10 @@
     <span class="esp-viewer-title" data-esp-v-title></span>
     <span class="esp-viewer-count" data-esp-v-count></span>
     <button type="button" data-esp-v-play title="{{ _('Play / pause') }} (space)">⏯</button>
+    <label class="esp-viewer-speed" title="{{ _('Seconds per photo') }} ( - / + )">
+      <span aria-hidden="true">⏱</span>
+      <select data-esp-v-speed aria-label="{{ _('Seconds per photo') }}"></select>
+    </label>
     <a data-esp-v-link title="{{ _('Open photo page') }}">↗</a>
     <button type="button" data-esp-v-close title="{{ _('Close') }} (Esc)">✕</button>
   </div>

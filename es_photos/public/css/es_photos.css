@@ -214,6 +214,12 @@ body[data-path^="social/gallery"] main .page-header-wrapper { max-width: none; p
 .esp-viewer-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; background: rgba(255,255,255,.1);
   border: 0; color: #fff; width: 52px; height: 52px; border-radius: 50%; font-size: 30px; cursor: pointer; }
 .esp-viewer-nav.prev { left: 12px; } .esp-viewer-nav.next { right: 12px; }
+.esp-viewer-speed { display: inline-flex; align-items: center; gap: 4px; height: 38px; padding: 0 4px 0 10px; margin: 0;
+  border-radius: 10px; background: rgba(255,255,255,.12); color: #fff; font-size: 14px; cursor: pointer; }
+.esp-viewer-speed select { background: transparent; border: 0; color: #fff; font: inherit; font-variant-numeric: tabular-nums;
+  padding: 0 2px; cursor: pointer; outline: none; }
+.esp-viewer-speed select option { color: #1c1e21; }
+.esp-viewer-speed:focus-within { box-shadow: 0 0 0 2px var(--es-primary); }
 .esp-viewer-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(255,255,255,.1); }
 .esp-viewer-progress i { display: block; height: 100%; width: 0; background: var(--es-primary); }
 .esp-viewer.playing .esp-viewer-progress i { animation: esp-progress var(--esp-interval, 5s) linear; }

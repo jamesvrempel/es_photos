@@ -119,6 +119,34 @@
   var viewer = $("[data-esp-viewer]");
   var V = { items: [], i: 0, timer: null, playing: false, interval: 5000 };
 
+  // ---- slideshow speed: site default (ES Photos Settings), visitor's choice remembered in this browser
+  var SPEED_KEY = "esp_slideshow_seconds";
+  var SPEEDS = [1, 2, 3, 4, 5, 7, 10, 15, 20, 30, 45, 60, 90, 120];
+  function clampSecs(n) { n = parseInt(n, 10); return isNaN(n) ? 0 : Math.min(120, Math.max(1, n)); }
+  function savedSecs() { try { return clampSecs(localStorage.getItem(SPEED_KEY)); } catch (e) { return 0; } }
+  function setSpeed(secs, remember) {
+    secs = clampSecs(secs) || 5;
+    V.interval = secs * 1000;
+    if (viewer) viewer.style.setProperty("--esp-interval", secs + "s");
+    var sel = $("[data-esp-v-speed]");
+    if (sel) {
+      if (SPEEDS.indexOf(secs) < 0) {   // a custom site default that isn't in the list
+        var o = document.createElement("option"); o.value = secs; o.textContent = secs + " s";
+        sel.appendChild(o);
+        Array.prototype.slice.call(sel.options).sort(function (a, b) { return a.value - b.value; })
+          .forEach(function (x) { sel.appendChild(x); });
+      }
+      sel.value = String(secs);
+    }
+    if (remember) { try { localStorage.setItem(SPEED_KEY, String(secs)); } catch (e) { /* private mode */ } }
+    if (V.playing) vRestartTimer();
+  }
+  function stepSpeed(dir) {
+    var cur = V.interval / 1000, i;
+    if (dir > 0) { for (i = 0; i < SPEEDS.length; i++) if (SPEEDS[i] > cur) return setSpeed(SPEEDS[i], true); }
+    else { for (i = SPEEDS.length - 1; i >= 0; i--) if (SPEEDS[i] < cur) return setSpeed(SPEEDS[i], true); }
+  }
+
   function vShow(i) {
     if (!V.items.length) return;
     V.i = (i + V.items.length) % V.items.length;
@@ -143,11 +171,12 @@
   }
   function vRestartTimer() {
     clearTimeout(V.timer);
+    viewer.style.setProperty("--esp-interval", V.interval / 1000 + "s");
     var bar = $("[data-esp-v-progress]");
     viewer.classList.remove("playing"); void bar.offsetWidth; viewer.classList.add("playing");
     V.timer = setTimeout(function () { vShow(V.i + 1); }, V.interval);
   }
-  function vPlay() { V.playing = true; viewer.style.setProperty("--esp-interval", V.interval / 1000 + "s"); vRestartTimer(); }
+  function vPlay() { V.playing = true; vRestartTimer(); }
   function vPause() { V.playing = false; clearTimeout(V.timer); viewer.classList.remove("playing"); }
   function vOpen(items, start, play) {
     if (!items || !items.length) return;
@@ -163,6 +192,15 @@
     if (document.fullscreenElement) document.exitFullscreen().catch(function () {});
   }
   if (viewer) {
+    var speedSel = $("[data-esp-v-speed]");
+    if (speedSel) {
+      SPEEDS.forEach(function (n) {
+        var o = document.createElement("option"); o.value = n; o.textContent = n + " s"; speedSel.appendChild(o);
+      });
+      // blur afterwards so ← → space Esc keep driving the viewer
+      speedSel.addEventListener("change", function () { setSpeed(speedSel.value, true); speedSel.blur(); });
+    }
+    setSpeed(savedSecs() || CFG.slideshow_seconds || 5, false);
     $("[data-esp-v-prev]").addEventListener("click", function () { vShow(V.i - 1); });
     $("[data-esp-v-next]").addEventListener("click", function () { vShow(V.i + 1); });
     $("[data-esp-v-close]").addEventListener("click", vClose);
@@ -224,6 +262,8 @@
       else if (e.key === "ArrowLeft") vShow(V.i - 1);
       else if (e.key === "Escape") vClose();
       else if (e.key === " ") { e.preventDefault(); V.playing ? vPause() : vPlay(); }
+      else if (e.key === "+" || e.key === "=") stepSpeed(1);   // slower
+      else if (e.key === "-" || e.key === "_") stepSpeed(-1);  // faster
       return;
     }
     if (modal && !modal.hidden) { if (e.key === "Escape") closeModal(); return; }

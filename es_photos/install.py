@@ -24,6 +24,7 @@ def ensure_settings():
 	defaults = {
 		"gallery_title": "Gallery",
 		"photos_per_page": 48,
+		"slideshow_seconds": 5,
 		"default_privacy": "Public",
 		"allow_member_albums": 1,
 		"enable_downloads": 1,

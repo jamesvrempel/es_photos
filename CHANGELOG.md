@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0 — 2026-10-20
+
+### Added
+- Slideshow speed: **Slideshow seconds per photo** in ES Photos Settings (default 5,
+  1–120) and a ⏱ seconds selector in the slideshow toolbar, remembered per browser;
+  `-` / `+` keys change speed while viewing. The progress bar follows the chosen time.
+
 ## 0.2.0 — 2026-10-20
 
 ### Added

@@ -60,7 +60,7 @@ upload when "Members can create albums" is ticked.
 | URL | What it shows |
 |---|---|
 | `/social/gallery` | Album grid, recently added, community albums |
-| `/social/gallery/album/<slug>` | Sub-albums, justified photo grid, sort, slideshow, owner tools |
+| `/social/gallery/album/<slug>` | Sub-albums, justified photo grid, sort, slideshow (adjustable seconds per photo), owner tools |
 | `/social/gallery/photo/<id>` | Photo/video, prev/next (← →), fullscreen, download, details + EXIF, keywords, reactions, comments, share |
 | `/social/gallery/keywords`, `/keyword/<slug>` | Keyword cloud and keyword pages |
 | `/social/gallery/recent`, `/recent-albums`, `/most-visited`, `/random` | Discover views |
@@ -68,6 +68,11 @@ upload when "Members can create albums" is ticked.
 | `/social/gallery/search?q=` | Title, description, keyword and album search |
 | `/social/gallery/member/<slug>` | One member's albums and uploads (what the viewer is allowed to see) |
 | `/social/gallery/upload` | Drag-and-drop multi-upload (3 at a time), create album inline, add video |
+
+**Slideshow speed.** ES Photos Settings → *Slideshow seconds per photo* sets the default
+(5 s; 1–120). In the slideshow toolbar the ⏱ selector changes it (1 s … 2 min) and the
+visitor's browser remembers the choice; the `-` / `+` keys go faster / slower. Other
+shortcuts: ← → next/previous, space play/pause, Esc close.
 
 Uploads get EXIF read and three JPEG renditions (720 / 1600 / 2560 px) written to
 `/files/es_photos/`.
