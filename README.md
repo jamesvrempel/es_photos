@@ -1,9 +1,10 @@
 # ES Photos
 
 A photo gallery app for Frappe v15 that lives inside **ES Social** at `/social/gallery`.
-It recreates everything the Piwigo site at photos.tarrant-trading.com does — albums and
-sub-albums, keywords, most visited / recent / random / calendar views, search, EXIF,
-slideshow, downloads, videos — and plugs it into ES Social's people, privacy and feed.
+A Piwigo-style photo library — albums and sub-albums, keywords, most visited / recent /
+random / calendar views, search, EXIF, slideshow, downloads, videos — plugged into ES
+Social's people, privacy and feed. The gallery runs full screen (full browser width; the
+site navbar and footer stay).
 
 ## How it fits into ES Social
 
@@ -30,11 +31,10 @@ slideshow, downloads, videos — and plugs it into ES Social's people, privacy a
   (Public / Connections / Group / Only Me), cover photo, photo order, cached counts.
 * **Photo** — image or YouTube/Vimeo video; renditions (thumb/medium/large/original);
   EXIF (camera, lens, focal length, aperture, exposure, ISO, GPS); keywords; "also show in"
-  albums (Piwigo virtual albums); view/like/comment counts.
+  albums; view/like/comment counts.
 * **Photo Keyword**, **Photo Comment**, **Photo Reaction**
 * **ES Photos Settings** — gallery title, page size, member uploads, downloads, EXIF,
-  comments/reactions switches, Piwigo import options.
-* **Photo Import Log** — one row per import run with counts and a log.
+  comments/reactions switches.
 
 A **Gallery Manager** role is created on install (full desk access to all of the above and
 sees every album). Members with the **Social User** role can create their own albums and
@@ -73,34 +73,22 @@ bench restart
 
 Then open **ES Photos Settings** in the desk to check the defaults.
 
-## Importing photos.tarrant-trading.com
+## Desk workspace
 
-The Piwigo site's web API (`ws.php`) is public, so no credentials are needed for public albums.
+**ES Photos** in the desk sidebar (Gallery Manager / System Manager) has shortcuts to open
+the gallery, upload, the album tree, all photos (with a count), comments waiting for review
+and settings; quick lists of recently added photos and recently updated albums; and cards
+linking every ES Photos DocType plus ES Social Settings.
 
-1. ES Photos Settings → check **Piwigo site URL** and pick an **Import mode**:
-   * **Link remote images** (default) — creates every album/photo record but images keep
-     being served by Piwigo. Fast, no disk use.
-   * **Download into this site** — copies each image (XX-Large ≈1656 px, or Original) into
-     Frappe and makes local renditions, so Piwigo can be retired. 7,400+ photos take a while
-     and need disk space.
-2. Click **New Piwigo import**, optionally tick **Dry run** first, then **Start import**.
-   It runs on the `long` queue; refresh the log to watch progress.
+## Upgrading from 0.1.x
 
-What comes across: the album tree (with descriptions and Piwigo order), every photo with title,
-description, date taken/added and view count, album covers, virtual-album memberships
-(e.g. the Videos album), keywords, and gvideo YouTube/Vimeo entries as playable videos.
-Re-running is safe — records are matched by `source_ref`, so only new items are added.
-
-Imported albums are owned by the **Import owner** user and get the default privacy
-(Piwigo private albums come in as "Only Me").
+0.2.0 removes the Piwigo importer. `bench migrate` runs a patch that drops the
+Photo Import Log DocType and table and clears only the Piwigo fields (URL, username,
+password, import options) from ES Photos Settings — every other setting is kept as it is.
+Albums and photos that were imported stay where they are.
 
 ## Notes
 
-* Re-runnable imports use a savepoint per photo, so one bad item never discards the others.
-* Piwigo with PHP `display_errors` on prints warnings ahead of its JSON; the importer skips
-  them. On photos.tarrant-trading.com this happens for
-  `galleries/Kosciuszko_National_Park_NSW_AU/Kosciuszko_National_Park_NSW_AU_Photos_1365.png`,
-  which Piwigo can't read — worth checking on that server.
 
 * Album and photo pages are server-rendered (good for sharing previews: Open Graph tags are set).
 * View counts increment once per visitor per hour.

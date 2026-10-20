@@ -32,9 +32,6 @@ def ensure_settings():
 		"enable_reactions": 1,
 		"show_community_albums": 1,
 		"feed_preview_photos": 4,
-		"piwigo_url": "https://photos.tarrant-trading.com",
-		"import_owner": "Administrator",
-		"import_mode": "Link remote images",
 	}
 	for k, v in defaults.items():
 		if not s.get(k):

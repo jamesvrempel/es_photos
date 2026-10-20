@@ -18,15 +18,7 @@
   "enable_comments",
   "enable_reactions",
   "show_community_albums",
-  "feed_preview_photos",
-  "sb_import",
-  "piwigo_url",
-  "piwigo_username",
-  "piwigo_password",
-  "cb_i1",
-  "import_owner",
-  "import_mode",
-  "download_size"
+  "feed_preview_photos"
  ],
  "fields": [
   {
@@ -78,7 +70,7 @@
   },
   {
    "default": "0",
-   "description": "0 = use ES Social Settings \u2192 Max upload size.",
+   "description": "0 = use ES Social Settings → Max upload size.",
    "fieldname": "max_upload_mb",
    "fieldtype": "Int",
    "idx": 8,
@@ -126,70 +118,11 @@
    "fieldtype": "Int",
    "idx": 14,
    "label": "Photos in feed post"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "sb_import",
-   "fieldtype": "Section Break",
-   "idx": 15,
-   "label": "Piwigo import"
-  },
-  {
-   "default": "https://photos.tarrant-trading.com",
-   "fieldname": "piwigo_url",
-   "fieldtype": "Data",
-   "idx": 16,
-   "label": "Piwigo site URL"
-  },
-  {
-   "description": "Optional. Only needed to import private albums.",
-   "fieldname": "piwigo_username",
-   "fieldtype": "Data",
-   "idx": 17,
-   "label": "Piwigo Username"
-  },
-  {
-   "fieldname": "piwigo_password",
-   "fieldtype": "Password",
-   "idx": 18,
-   "label": "Piwigo Password"
-  },
-  {
-   "fieldname": "cb_i1",
-   "fieldtype": "Column Break",
-   "idx": 19
-  },
-  {
-   "default": "Administrator",
-   "description": "Imported albums are owned by this user.",
-   "fieldname": "import_owner",
-   "fieldtype": "Link",
-   "idx": 20,
-   "label": "Import Owner",
-   "options": "User"
-  },
-  {
-   "default": "Link remote images",
-   "description": "Link: images keep being served by Piwigo (fast, no disk). Download: copies files here so Piwigo can be retired.",
-   "fieldname": "import_mode",
-   "fieldtype": "Select",
-   "idx": 21,
-   "label": "Import Mode",
-   "options": "Link remote images\nDownload into this site"
-  },
-  {
-   "default": "XX-Large (about 1656px)",
-   "depends_on": "eval:doc.import_mode=='Download into this site'",
-   "fieldname": "download_size",
-   "fieldtype": "Select",
-   "idx": 22,
-   "label": "Download Size",
-   "options": "XX-Large (about 1656px)\nOriginal"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-10-18 20:30:00.000000",
+ "modified": "2026-10-20 16:30:00.000000",
  "modified_by": "Administrator",
  "module": "ES Photos",
  "name": "ES Photos Settings",

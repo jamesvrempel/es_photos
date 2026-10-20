@@ -1,8 +1,15 @@
 /* ES Photos — gallery inside ES Social. Builds on es_social.css variables. */
 
 .esp { --esp-row: 220px; --esp-gap: 6px; --esp-ink: #0b0d10; }
-main.container:has(.esp) { max-width: none; }
-.esp.es-social { max-width: 1440px; padding-left: 16px; padding-right: 16px; }
+/* Full screen: the gallery spans the whole browser width. The site navbar and
+   footer stay; only the page body is uncapped. body[data-path] covers browsers
+   without :has(). */
+main:has(> .page_content .esp), main:has(.esp),
+body[data-path^="social/gallery"] main { max-width: none; width: 100%; margin: 0; padding-left: 0; padding-right: 0; }
+body[data-path^="social/gallery"] main .page_content,
+body[data-path^="social/gallery"] main .page-header-wrapper { max-width: none; padding: 0; margin: 0; }
+.esp.es-social { max-width: none; width: 100%; margin: 0; padding: 0 24px 60px; box-sizing: border-box; }
+.esp .es-topbar { padding-left: 0; padding-right: 0; }
 .esp .es-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 8px;
   border: 1px solid var(--es-border); background: var(--es-card); font-weight: 600; font-size: 14px; cursor: pointer;
   color: var(--es-text); line-height: 1.2; white-space: nowrap; }
@@ -225,6 +232,10 @@ main.container:has(.esp) { max-width: none; }
 
 .esp-mobile-strip { display: none; }
 
+@media (min-width: 1800px) {
+  .esp { --esp-row: 260px; }
+  .esp-layout.es-layout { grid-template-columns: 280px minmax(0, 1fr); }
+}
 @media (max-width: 1100px) {
   .esp-photo-cols { grid-template-columns: 1fr; }
 }

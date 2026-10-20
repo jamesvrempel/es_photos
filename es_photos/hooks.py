@@ -3,7 +3,7 @@ from es_photos import __version__
 app_name = "es_photos"
 app_title = "ES Photos"
 app_publisher = "Enterprise Systems Australia"
-app_description = "Photo gallery for ES Social — albums, keywords, EXIF, slideshows and Piwigo import"
+app_description = "Photo gallery for ES Social — albums, keywords, EXIF and slideshows"
 app_email = "james.rempel@enterprisesystems.com.au"
 app_license = "mit"
 

@@ -3,7 +3,7 @@ name = "es_photos"
 authors = [
     { name = "Enterprise Systems Australia", email = "james.rempel@enterprisesystems.com.au" }
 ]
-description = "Photo gallery for ES Social — albums, keywords, EXIF, slideshows and Piwigo import"
+description = "Photo gallery for ES Social — albums, keywords, EXIF and slideshows"
 requires-python = ">=3.10"
 readme = "README.md"
 dynamic = ["version"]
