@@ -41,13 +41,13 @@ def slideshow(album: str | None = None, keyword: str | None = None, sort: str | 
 	"""Ordered list of photos for the fullscreen viewer."""
 	v = G.get_viewer()
 	albums = None
-	order = "Date added (newest first)"
+	order = G.default_order()
 	if album:
 		row = G.visible_albums(v).get(album)
 		if not row:
 			return []
 		albums = [album]
-		order = G.SORT_KEYS.get(sort) or row.image_order or order
+		order = G.SORT_KEYS.get(sort) or G.album_order(row)
 	elif keyword:
 		order = G.SORT_KEYS.get(sort) or order
 	rows = G.photo_query(v, albums=albums, keyword=keyword, order=order, limit=2000)
@@ -197,7 +197,7 @@ def post_album_to_feed(album: str, message: str = ""):
 	_login()
 	row = _editable_album(album)
 	n = cint(G.settings().feed_preview_photos) or 4
-	photos = G.photo_query(albums=G.subtree_names(album), order=row.image_order or "Date added (newest first)", limit=n)
+	photos = G.photo_query(albums=G.subtree_names(album), order=G.album_order(row), limit=n)
 	if not photos:
 		frappe.throw(_("Add some photos first."))
 	post = I.post_album(row, photos, (message or "").strip()[:2000])
@@ -246,6 +246,8 @@ def save_album(
 	doc.parent_photo_album = parent_photo_album or None
 	if image_order in G.ORDERS:
 		doc.image_order = image_order
+	elif image_order == "":  # "Gallery default"
+		doc.image_order = None
 	doc.save(ignore_permissions=True)
 	return {"name": doc.name, "url": f"/social/gallery/album/{doc.name}"}
 

@@ -189,6 +189,7 @@
           </label>
           <label>{{ _("Photo order") }}
             <select name="image_order">
+              <option value=""{% if not album.image_order %} selected{% endif %}>{{ _("Gallery default") }} ({{ default_order }})</option>
               {% for o in ["Date added (newest first)", "Date added (oldest first)", "Date taken (newest first)", "Date taken (oldest first)", "Title", "Most viewed", "Manual"] %}<option{% if album.image_order == o %} selected{% endif %}>{{ o }}</option>{% endfor %}
             </select>
           </label>

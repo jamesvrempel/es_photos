@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.5.0 — 2026-10-21
+
+### Added
+- **Default album sort** in ES Photos Settings (default *Date taken, newest first*), used by
+  albums, keyword pages, photo-page next/previous and slideshows unless an album has its
+  own Photo order. An album's Photo order can now be left blank ("Gallery default").
+
+### Changed
+- Patch `v0_5.default_album_sort` clears album orders nobody chose in ES Photos — the old
+  auto-filled "Date added (newest first)" and orders copied from Piwigo on imported albums —
+  so those albums follow the new default. Orders members picked themselves are kept.
+
+### Fixed
+- Keyword-page slideshows now play in the same order as the page.
+
 ## 0.4.0 — 2026-10-21
 
 ### Added

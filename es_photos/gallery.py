@@ -53,6 +53,21 @@ def settings():
 	return frappe.get_cached_doc("ES Photos Settings")
 
 
+FALLBACK_ORDER = "Date taken (newest first)"
+
+
+def default_order() -> str:
+	"""Gallery-wide photo order (ES Photos Settings → Default album sort)."""
+	o = settings().get("default_album_order")
+	return o if o in ORDERS else FALLBACK_ORDER
+
+
+def album_order(row) -> str:
+	"""An album's own Photo order, else the gallery default."""
+	o = (row or {}).get("image_order") if row else None
+	return o if o in ORDERS else default_order()
+
+
 def social_settings():
 	return S.social_settings()
 

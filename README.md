@@ -69,6 +69,12 @@ upload when "Members can create albums" is ticked.
 | `/social/gallery/member/<slug>` | One member's albums and uploads (what the viewer is allowed to see) |
 | `/social/gallery/upload` | Drag-and-drop multi-upload (3 at a time), create album inline, add video |
 
+**Album sort.** ES Photos Settings → *Default album sort* (default **Date taken, newest
+first**) orders every album, keyword page and slideshow, unless an album has its own
+*Photo order* (album owners set it in the album's edit dialog; blank = gallery default).
+Visitors can still re-sort with the Sort menu (`?sort=taken`, `taken-asc`, `newest`,
+`oldest`, `title`, `views`).
+
 **Slideshow speed.** ES Photos Settings → *Slideshow seconds per photo* sets the default
 (5 s; 1–120). In the slideshow toolbar the ⏱ selector changes it (1 s … 2 min) and the
 visitor's browser remembers the choice; the `-` / `+` keys go faster / slower. Other

@@ -10,6 +10,7 @@
   "tagline",
   "photos_per_page",
   "slideshow_seconds",
+  "default_album_order",
   "default_privacy",
   "cb_g1",
   "allow_member_albums",
@@ -62,24 +63,33 @@
    "idx": 5
   },
   {
+   "default": "Date taken (newest first)",
+   "fieldname": "default_album_order",
+   "fieldtype": "Select",
+   "label": "Default album sort",
+   "options": "Date added (newest first)\nDate added (oldest first)\nDate taken (newest first)\nDate taken (oldest first)\nTitle\nMost viewed\nManual",
+   "description": "How photos are ordered in albums (and keyword pages and slideshows) unless an album has its own Photo order. Visitors can still re-sort with the Sort menu.",
+   "idx": 6
+  },
+  {
    "default": "Public",
    "fieldname": "default_privacy",
    "fieldtype": "Select",
-   "idx": 6,
+   "idx": 7,
    "label": "Default Privacy",
    "options": "Public\nConnections\nGroup\nOnly Me"
   },
   {
    "fieldname": "cb_g1",
    "fieldtype": "Column Break",
-   "idx": 7
+   "idx": 8
   },
   {
    "default": "1",
    "description": "Users with the Social User role can create their own albums. Gallery Managers always can.",
    "fieldname": "allow_member_albums",
    "fieldtype": "Check",
-   "idx": 8,
+   "idx": 9,
    "label": "Members can create albums and upload"
   },
   {
@@ -87,42 +97,42 @@
    "description": "0 = use ES Social Settings → Max upload size.",
    "fieldname": "max_upload_mb",
    "fieldtype": "Int",
-   "idx": 9,
+   "idx": 10,
    "label": "Max upload size (MB)"
   },
   {
    "default": "1",
    "fieldname": "enable_downloads",
    "fieldtype": "Check",
-   "idx": 10,
+   "idx": 11,
    "label": "Enable Downloads"
   },
   {
    "default": "1",
    "fieldname": "show_exif",
    "fieldtype": "Check",
-   "idx": 11,
+   "idx": 12,
    "label": "Show camera / EXIF details"
   },
   {
    "default": "1",
    "fieldname": "enable_comments",
    "fieldtype": "Check",
-   "idx": 12,
+   "idx": 13,
    "label": "Enable Comments"
   },
   {
    "default": "1",
    "fieldname": "enable_reactions",
    "fieldtype": "Check",
-   "idx": 13,
+   "idx": 14,
    "label": "Enable Reactions"
   },
   {
    "default": "1",
    "fieldname": "show_community_albums",
    "fieldtype": "Check",
-   "idx": 14,
+   "idx": 15,
    "label": "Show ES Social member albums on gallery home"
   },
   {
@@ -130,14 +140,14 @@
    "description": "How many photos to include when an album is posted to the ES Social feed.",
    "fieldname": "feed_preview_photos",
    "fieldtype": "Int",
-   "idx": 15,
+   "idx": 16,
    "label": "Photos in feed post"
   },
   {
    "fieldname": "sb_backup",
    "fieldtype": "Section Break",
    "label": "Backups",
-   "idx": 16
+   "idx": 17
   },
   {
    "default": "1",
@@ -145,24 +155,24 @@
    "fieldtype": "Check",
    "label": "Exclude gallery photos from Google Drive backup",
    "description": "When ticked, the Google Drive backup (Integrations → Google Drive, scheduled or \"Take Backup\") uploads the files archive without the gallery folder public/files/es_photos (uploaded originals and their resized copies). Database, other files and other backups (local bench backups, S3, Dropbox) are unchanged. Back the gallery folder up some other way if you need a copy.",
-   "idx": 17
+   "idx": 18
   },
   {
    "fieldname": "cb_b1",
    "fieldtype": "Column Break",
-   "idx": 18
+   "idx": 19
   },
   {
    "fieldname": "gallery_storage_note",
    "fieldtype": "HTML",
    "label": "Gallery storage",
    "options": "<div class=\"text-muted small\"><b>Where gallery files live</b><br><code>sites/&lt;site&gt;/public/files/es_photos/originals/</code> — uploaded originals<br><code>sites/&lt;site&gt;/public/files/es_photos/</code> — thumb / medium / large copies<br><br>To keep a copy of the gallery outside Google Drive, back up that folder, e.g.<br><code>rsync -a sites/&lt;site&gt;/public/files/es_photos/ /backup/es_photos/</code></div>",
-   "idx": 19
+   "idx": 20
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-10-21 13:30:00.000000",
+ "modified": "2026-10-21 14:00:00.000000",
  "modified_by": "Administrator",
  "module": "ES Photos",
  "name": "ES Photos Settings",

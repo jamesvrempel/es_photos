@@ -176,8 +176,9 @@ def v_album(context, parts, v):
 	context.album_name = a.name
 	context.album_owner = G.profile_info(a.owner_user)
 	context.can_edit = v.can_edit_album(a)
+	context.default_order = G.default_order()
 	context.subalbums = [_album_card(c) for c in G.children(a.name, v)]
-	order = _sort_key(a.image_order or "Date added (newest first)")
+	order = _sort_key(G.album_order(a))
 	context.sort = frappe.form_dict.get("sort") or ""
 	total = G.photo_query(v, albums=[a.name], count=True)
 	start, per = _page(context, total)
@@ -210,7 +211,7 @@ def v_photo(context, parts, v):
 	context.uploader = G.profile_info(doc.uploaded_by) if doc.uploaded_by else None
 	context.can_edit = v.can_edit_album(album) or (not v.guest and doc.uploaded_by == v.user)
 	context.can_set_cover = v.can_edit_album(album)
-	order = album.image_order or "Date added (newest first)"
+	order = G.album_order(album)
 	prev, nxt, pos, total = G.neighbours(doc, album.name, order, v)
 	context.prev, context.next, context.pos, context.count = prev, nxt, pos, total
 	context.src = G.photo_src(doc, "medium")
@@ -275,7 +276,7 @@ def v_keyword(context, parts, v):
 	total = G.photo_query(v, keyword=kw.name, count=True)
 	start, per = _page(context, total)
 	context.photos = G.photo_query(
-		v, keyword=kw.name, order=_sort_key("Date taken (newest first)"), start=start, limit=per
+		v, keyword=kw.name, order=_sort_key(G.default_order()), start=start, limit=per
 	)
 	context.sort = frappe.form_dict.get("sort") or ""
 	context.page_title = kw.keyword_name
