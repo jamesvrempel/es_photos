@@ -41,6 +41,11 @@ doc_events = {
 	},
 }
 
+# Google Drive backups: leave the gallery folder (public/files/es_photos) out of
+# the uploaded files archive when ES Photos Settings asks for it.
+before_job = ["es_photos.backup.before_job"]
+after_job = ["es_photos.backup.after_job"]
+
 scheduler_events = {
 	"daily": ["es_photos.gallery.recount_all"],
 }

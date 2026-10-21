@@ -278,17 +278,10 @@ def upload_photo(album: str, title: str | None = None):
 	photo.flags.esp_skip_recount = True
 	photo.insert(ignore_permissions=True)
 
-	file_doc = frappe.get_doc(
-		{
-			"doctype": "File",
-			"file_name": fname,
-			"content": content,
-			"is_private": 0,
-			"attached_to_doctype": "Photo",
-			"attached_to_name": photo.name,
-			"attached_to_field": "image",
-		}
-	).save(ignore_permissions=True)
+	# originals live in /files/es_photos/originals with the renditions (see storage.py)
+	from es_photos.storage import save_original
+
+	file_doc = save_original(photo.name, fname, content)
 
 	try:
 		from es_photos.imaging import process_image_bytes

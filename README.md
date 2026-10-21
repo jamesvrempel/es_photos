@@ -119,11 +119,34 @@ bench --site <your-site> migrate
 bench build --app es_photos && bench restart
 ```
 
+### Backups and the gallery
+
+All gallery images live in one folder:
+
+```
+sites/<site>/public/files/es_photos/originals/   uploaded originals
+sites/<site>/public/files/es_photos/             thumb / medium / large copies
+```
+
+**ES Photos Settings → Backups → "Exclude gallery photos from Google Drive backup"**
+(on by default) makes Frappe's Google Drive backup — the nightly/weekly schedule and the
+*Take Backup* button under Integrations → Google Drive — upload its files archive without
+that folder. The database backup still includes every album, photo record, comment and
+setting; only the image files are left out. Local `bench backup`, S3 and Dropbox backups are
+not changed.
+
+It works through Frappe v15's `before_job` / `after_job` hooks: only while the Google Drive
+job runs, tar gets `--exclude <files>/es_photos`, and Google Drive is made to build fresh
+archives instead of re-using a recent local backup (which would include the gallery). See
+`es_photos/backup.py`.
+
+Keep a copy of the gallery some other way if you need one, e.g. a nightly
+`rsync -a sites/<site>/public/files/es_photos/ /backup/es_photos/`.
+
 ### Production notes
 
-* Uploaded originals and renditions are public files under `sites/<site>/public/files/`
-  (`/files/es_photos/` for renditions); include them in backups
-  (`bench --site <site> backup --with-files`).
+* Uploaded originals and renditions are public files under
+  `sites/<site>/public/files/es_photos/` (see *Backups and the gallery*).
 * Allow large uploads through nginx: `client_max_body_size` must be at least the
   configured max upload size (ES Photos Settings, or ES Social Settings when 0).
 * Static assets are cache-busted with `?v=<app version / file mtime>`, so Cloudflare or a

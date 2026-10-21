@@ -40,7 +40,16 @@ class Photo(Document):
 	def on_update(self):
 		if self.image and self.has_value_changed("image") and self.image.startswith("/files/"):
 			from es_photos.imaging import process_local_image
+			from es_photos.storage import in_gallery_folder, relocate_original
 
+			# an image attached in the desk lands in /files/ — keep every gallery
+			# image inside /files/es_photos/ so backups can leave the gallery out
+			if not in_gallery_folder(self.image):
+				new_url = relocate_original(self.name, self.image)
+				if new_url:
+					self.image = new_url
+					if not self.original_url or not in_gallery_folder(self.original_url):
+						self.original_url = new_url
 			if not self.flags.esp_skip_processing:
 				process_local_image(self)
 		if not self.flags.esp_skip_recount:

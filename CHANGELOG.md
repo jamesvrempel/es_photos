@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.0 — 2026-10-21
+
+### Added
+- **Exclude gallery photos from Google Drive backup** (ES Photos Settings → Backups, on by
+  default). The Google Drive backup (scheduled or *Take Backup*) uploads the files archive
+  without `public/files/es_photos`; database and all other files are still backed up.
+  Other backups (local, S3, Dropbox) are unchanged. Uses Frappe's `before_job`/`after_job`
+  hooks (`es_photos/backup.py`).
+
+### Changed
+- All gallery images now live under `public/files/es_photos/`: uploads and images attached
+  in the desk are stored in `es_photos/originals/`. Patch
+  `v0_4.gallery_files_to_own_folder` moves existing originals there (copying instead of
+  moving any file another record also uses) and switches the new setting on.
+
 ## 0.3.0 — 2026-10-20
 
 ### Added

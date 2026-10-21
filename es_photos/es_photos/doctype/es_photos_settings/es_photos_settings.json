@@ -19,7 +19,11 @@
   "enable_comments",
   "enable_reactions",
   "show_community_albums",
-  "feed_preview_photos"
+  "feed_preview_photos",
+  "sb_backup",
+  "exclude_from_google_drive",
+  "cb_b1",
+  "gallery_storage_note"
  ],
  "fields": [
   {
@@ -128,11 +132,37 @@
    "fieldtype": "Int",
    "idx": 15,
    "label": "Photos in feed post"
+  },
+  {
+   "fieldname": "sb_backup",
+   "fieldtype": "Section Break",
+   "label": "Backups",
+   "idx": 16
+  },
+  {
+   "default": "1",
+   "fieldname": "exclude_from_google_drive",
+   "fieldtype": "Check",
+   "label": "Exclude gallery photos from Google Drive backup",
+   "description": "When ticked, the Google Drive backup (Integrations → Google Drive, scheduled or \"Take Backup\") uploads the files archive without the gallery folder public/files/es_photos (uploaded originals and their resized copies). Database, other files and other backups (local bench backups, S3, Dropbox) are unchanged. Back the gallery folder up some other way if you need a copy.",
+   "idx": 17
+  },
+  {
+   "fieldname": "cb_b1",
+   "fieldtype": "Column Break",
+   "idx": 18
+  },
+  {
+   "fieldname": "gallery_storage_note",
+   "fieldtype": "HTML",
+   "label": "Gallery storage",
+   "options": "<div class=\"text-muted small\"><b>Where gallery files live</b><br><code>sites/&lt;site&gt;/public/files/es_photos/originals/</code> — uploaded originals<br><code>sites/&lt;site&gt;/public/files/es_photos/</code> — thumb / medium / large copies<br><br>To keep a copy of the gallery outside Google Drive, back up that folder, e.g.<br><code>rsync -a sites/&lt;site&gt;/public/files/es_photos/ /backup/es_photos/</code></div>",
+   "idx": 19
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-10-20 18:30:00.000000",
+ "modified": "2026-10-21 13:30:00.000000",
  "modified_by": "Administrator",
  "module": "ES Photos",
  "name": "ES Photos Settings",
