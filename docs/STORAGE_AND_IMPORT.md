@@ -57,9 +57,14 @@ copy-in (step 5) needs Piwigo running.
 
 ## Step 1 — install ES Photos 0.6.0
 
+> If Frappe itself was updated as well (e.g. by `bench update`), install its new Python
+> requirements **before** migrating — recent Frappe v15 releases need `duckdb` and `pyarrow`:
+> `bench setup requirements --python`. Otherwise migrate stops with
+> `No module named 'pyarrow'`.
+
 ```bash
 cd ~/frappe-bench
-bench update --apps es_photos --pull        # or: cd apps/es_photos && git pull && cd ../..
+git -C apps/es_photos pull                   # updates ES Photos only — not Frappe or other apps
 bench --site erp.enterprisesystems.com.au migrate
 bench build --app es_photos
 sudo supervisorctl restart all

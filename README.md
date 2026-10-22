@@ -120,7 +120,7 @@ After installing:
 
 ```bash
 cd ~/frappe-bench
-bench update --apps es_photos --pull     # or: cd apps/es_photos && git pull
+git -C apps/es_photos pull                # ES Photos only; for Frappe updates also run: bench setup requirements --python
 bench --site <your-site> migrate
 bench build --app es_photos && bench restart
 ```
