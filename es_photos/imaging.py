@@ -93,41 +93,71 @@ def read_exif(img: Image.Image) -> dict:
 	return {k: v for k, v in out.items() if v not in (None, "")}
 
 
+ORIENT_SWAP = {5, 6, 7, 8}  # EXIF orientations that rotate by 90°
+
+
+def _flatten(img: Image.Image) -> Image.Image:
+	if img.mode in ("RGB", "L"):
+		return img
+	bg = Image.new("RGB", img.size, (255, 255, 255))
+	try:
+		bg.paste(img, mask=img.convert("RGBA").split()[-1])
+	except Exception:
+		bg.paste(img.convert("RGB"))
+	return bg
+
+
 def make_renditions(img: Image.Image, photo_name: str) -> dict:
-	img = ImageOps.exif_transpose(img)
-	if img.mode not in ("RGB", "L"):
-		bg = Image.new("RGB", img.size, (255, 255, 255))
-		try:
-			bg.paste(img, mask=img.convert("RGBA").split()[-1])
-		except Exception:
-			bg.paste(img.convert("RGB"))
-		img = bg
+	"""thumb / medium / large JPEGs from an opened image.
+
+	Decodes once: JPEGs are decoded straight at reduced size (draft mode), the
+	image is rotated once, and each smaller rendition is made from the previous
+	one (large -> medium -> thumb) instead of from the full-size original."""
+	full_longest = max(img.size)
+	if img.format == "JPEG":
+		img.draft("RGB", (RENDITIONS["large"][0], RENDITIONS["large"][0]))
+	img = _flatten(ImageOps.exif_transpose(img))
 	folder = _folder()
 	urls = {}
-	longest = max(img.size)
-	for key, (edge, suffix) in RENDITIONS.items():
-		if key == "large" and longest <= RENDITIONS["medium"][0]:
+	src = img
+	for key in ("large", "medium", "thumb"):
+		edge, suffix = RENDITIONS[key]
+		if key == "large" and full_longest <= RENDITIONS["medium"][0]:
 			continue
-		r = img.copy()
+		r = src.copy()
 		r.thumbnail((edge, edge), Image.LANCZOS)
 		fname = f"{photo_name}-{suffix}.jpg"
 		r.save(os.path.join(folder, fname), "JPEG", quality=85 if key != "thumb" else 80, optimize=True,
 		       progressive=True)
 		urls[f"{key}_url"] = f"/files/{FOLDER}/{fname}"
+		src = r
 	return urls
 
 
-def process_image_bytes(photo, content: bytes) -> dict:
-	img = Image.open(io.BytesIO(content))
-	values = {"width": img.size[0], "height": img.size[1], "filesize": len(content)}
+def _process(photo, img: Image.Image, size: int) -> dict:
+	w, h = img.size
+	try:
+		if img.getexif().get(0x0112) in ORIENT_SWAP:
+			w, h = h, w
+	except Exception:
+		pass
+	values = {"width": w, "height": h, "filesize": size}
 	for k, v in read_exif(img).items():
 		if not photo.get(k):
 			values[k] = v
-	# exif orientation swaps dimensions
-	t = ImageOps.exif_transpose(img)
-	values["width"], values["height"] = t.size
 	values.update(make_renditions(img, photo.name))
 	return values
+
+
+def process_image_bytes(photo, content: bytes) -> dict:
+	return _process(photo, Image.open(io.BytesIO(content)), len(content))
+
+
+def process_image_file(photo, path: str) -> dict:
+	"""Same as process_image_bytes but reads from disk without loading the whole
+	file into memory first (used for large folder imports)."""
+	with Image.open(path) as img:
+		return _process(photo, img, os.path.getsize(path))
 
 
 def process_local_image(photo):

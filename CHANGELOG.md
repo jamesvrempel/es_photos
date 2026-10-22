@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.6.0 — 2026-10-22
+
+### Added
+- **Photo Library Job** (ES Photos → Library jobs) with two background jobs:
+  - **Import folder** — folders under `public/files/es_photos/library/` become albums and
+    sub-albums; images are used in place; re-runs only process new/changed files and can
+    hide removed ones; dry run; cancel and resume. Tested with 1,200 photos in nested
+    folders (0 errors, ~4 photos/s on 2 CPUs).
+  - **Copy linked photos in** — downloads remotely-linked photos (Piwigo) into the server as
+    originals or ≤1600 px JPEGs, keeping EXIF, albums, comments and reactions.
+- `docs/STORAGE_AND_IMPORT.md` — runbook: dedicated drive (Proxmox passthrough, ext4,
+  bind mount), copy-in, library import, retiring Piwigo, backups.
+
+### Changed
+- Faster resized copies: JPEGs decoded at reduced size, one rotation, cascaded
+  large → medium → thumb; images read from disk without loading whole files into memory.
+- Photos from a folder import stay hidden until their thumbnails exist.
+
 ## 0.5.0 — 2026-10-21
 
 ### Added

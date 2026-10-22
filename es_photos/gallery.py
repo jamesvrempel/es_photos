@@ -278,10 +278,16 @@ def photo_src(p, size: str = "medium") -> str | None:
 	return g("medium_url") or g("large_url") or g("image") or g("original_url") or g("thumb_url")
 
 
+# Photos from a folder import stay hidden until their thumb/medium copies exist
+# (otherwise a page of thumbnails would load full-size originals).
+# (IFNULL matters: source_ref is NULL for uploaded photos, and NOT (NULL …) would hide them)
+READY = "NOT (IFNULL(p.source_ref, '') LIKE 'library:%%' AND IFNULL(p.thumb_url, '') = '')"
+
+
 def _album_condition(albums) -> tuple[str, dict]:
 	return (
-		"""(p.album IN %(albums)s OR EXISTS (SELECT 1 FROM `tabPhoto Album Membership` m
-		WHERE m.parent=p.name AND m.parenttype='Photo' AND m.album IN %(albums)s))""",
+		f"""(p.album IN %(albums)s OR EXISTS (SELECT 1 FROM `tabPhoto Album Membership` m
+		WHERE m.parent=p.name AND m.parenttype='Photo' AND m.album IN %(albums)s)) AND {READY}""",
 		{"albums": tuple(albums)},
 	)
 

@@ -125,6 +125,24 @@ bench --site <your-site> migrate
 bench build --app es_photos && bench restart
 ```
 
+### Large libraries and a dedicated drive
+
+**ES Photos → Library jobs** runs two bulk jobs in the background (progress, cancel,
+re-runnable):
+
+* **Import folder** — every folder under `public/files/es_photos/library/` becomes an album
+  (sub-folders → sub-albums) and every image a photo, used in place (no copy). Only new or
+  changed files are processed on re-runs; photos whose files were removed can be hidden.
+  Resized copies are made in parallel batches on the `long` queue; imported photos appear
+  in the gallery as soon as theirs are ready. Junk such as `.DS_Store`, `._*` and `@eaDir`
+  is ignored; videos are skipped; HEIC needs `pillow-heif`.
+* **Copy linked photos in** — downloads photos that are still shown from another website
+  (e.g. after a Piwigo "Link remote images" import) into this server, as originals or as
+  ≤1600 px JPEG copies, keeping albums, comments and reactions.
+
+Putting the whole gallery on its own drive, importing ~100K photos and retiring Piwigo
+step by step: **[docs/STORAGE_AND_IMPORT.md](docs/STORAGE_AND_IMPORT.md)**.
+
 ### Backups and the gallery
 
 All gallery images live in one folder:
