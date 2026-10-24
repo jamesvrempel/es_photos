@@ -7,7 +7,7 @@ It is written for the Enterprise Systems setup:
 
 | | |
 |---|---|
-| Proxmox host | `192.168.0.3` (node `enterprisesystems`) |
+| Proxmox host | `192.168.0.2` (node `enterprisesystems`, `ssh root@192.168.0.2`) |
 | ERP server | VM **101** `ES-HP-ERPv15-v1` — `192.168.0.77`, bench at `/home/enterprise/frappe-bench`, runs as user `enterprise` |
 | Piwigo server | VM **102** `ES-HP-Piwigo` — `192.168.0.131` (photos.tarrant-trading.com) |
 | Photo drive | WD Elements SE 4 TB USB — `/dev/disk/by-id/usb-WD_Elements_SE_2623_57583732443233394A464C58-0:0` |
@@ -97,6 +97,14 @@ qm set 101 -scsi1 /dev/disk/by-id/usb-WD_Elements_SE_2623_57583732443233394A464C
 ```
 
 ## Step 3 — format and mount the drive (ERP VM 101)
+
+> Run steps 3 and 4 **inside the ERP VM** (`ssh enterprise@192.168.0.77`), not on the
+> Proxmox host — on the host the same drive is `/dev/sda`, and formatting it there while
+> VM 101 uses it can corrupt it.
+>
+> If the drive already holds photos you want to keep (it already shows `ext4`), **don't
+> format it** — check its contents read-only first:
+> `sudo mkdir -p /mnt/check && sudo mount -o ro /dev/sdb1 /mnt/check && sudo ls /mnt/check`.
 
 ```bash
 lsblk -o NAME,SIZE,MODEL,FSTYPE
