@@ -43,7 +43,10 @@ LOG_LIMIT = 200_000
 IMAGE_EXT = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".tif", ".tiff", ".bmp"}
 HEIF_EXT = {".heic", ".heif"}
 VIDEO_EXT = {".mp4", ".mov", ".m4v", ".avi", ".mkv", ".3gp", ".mts"}
-SKIP_DIRS = {"@eaDir", "__MACOSX", ".AppleDouble", "#recycle", ".Trashes", ".Spotlight-V100", ".fseventsd", "lost+found"}
+SKIP_DIRS = {
+	"@eaDir", "__MACOSX", ".AppleDouble", "#recycle", ".Trashes", ".Spotlight-V100", ".fseventsd", "lost+found",
+	"_data",  # Piwigo's cache of resized copies
+}
 
 try:  # iPhone photos — optional: pip install pillow-heif
 	from pillow_heif import register_heif_opener
@@ -135,14 +138,17 @@ def cancelled(job_name: str) -> bool:
 
 
 def run(library_job: str):
-	job_name = library_job
 	"""Phase 1 (scan / select) and queueing of phase 2 batches."""
+	job_name = library_job
 	job = frappe.get_doc(DOCTYPE, job_name)
 	frappe.db.set_value(DOCTYPE, job_name, {"status": "Running", "started_on": now_datetime()}, update_modified=False)
 	frappe.db.commit()
 	try:
 		if job.job_type == "Import folder":
 			names = scan_folder(job)
+			kind = "render"
+		elif (job.copy_source or "").startswith("Use files"):
+			names = relink_local(job)
 			kind = "render"
 		else:
 			names = linked_photo_names()
@@ -255,6 +261,16 @@ def scan_folder(job) -> list:
 			"SELECT name, source_ref FROM `tabPhoto Album` WHERE source_ref LIKE %s", (_like_prefix(DIR_REF),), as_dict=True
 		)
 	}
+	# files that existing gallery photos already use (e.g. relinked Piwigo originals) are not
+	# imported a second time
+	in_use = set(
+		frappe.db.sql_list(
+			"""SELECT original_url FROM `tabPhoto`
+			WHERE original_url LIKE %s AND IFNULL(source_ref, '') NOT LIKE 'library:%%'""",
+			(_like_prefix(f"/files/{LIBRARY}/"),),
+		)
+	)
+	already = 0
 	counts = dict(albums_created=0, photos_created=0, photos_updated=0, photos_skipped=0, photos_hidden=0)
 	to_render, seen, found = [], set(), 0
 	unsupported, videos = 0, 0
@@ -299,8 +315,11 @@ def scan_folder(job) -> list:
 				if ext in HEIF_EXT:
 					unsupported += 1
 				continue
-			found += 1
 			rel = f"{rel_dir}/{fn}" if rel_dir else fn
+			if url_for(rel) in in_use:
+				already += 1
+				continue
+			found += 1
 			ref = REF + rel
 			seen.add(ref)
 			st = os.stat(os.path.join(dirpath, fn))
@@ -368,6 +387,8 @@ def scan_folder(job) -> list:
 		f"{counts['photos_skipped']} unchanged, {counts['photos_hidden']} hidden (file removed); "
 		f"{len(to_render)} to process",
 	)
+	if already:
+		log(job.name, f"{already} files skipped because gallery photos already use them")
 	if videos:
 		log(job.name, f"{videos} video files skipped (add videos as YouTube/Vimeo links)")
 	if unsupported:
@@ -387,6 +408,87 @@ def render_library_photo(name: str):
 
 
 # --------------------------------------------------------------------------- copy linked photos in
+
+
+def local_path_for_remote(url: str | None, folder: str) -> str | None:
+	"""Where a website URL's file lives under the library, if it is there.
+
+	https://site/galleries/A/b.png          -> library/<folder>/galleries/A/b.png
+	https://site/upload/2026/05/06/x.jpg    -> library/<folder>/upload/2026/05/06/x.jpg
+	https://site/_data/i/galleries/A/b-me.png -> library/<folder>/_data/i/galleries/A/b-me.png
+	https://site/i.php?/galleries/A/b-xl.png  -> library/<folder>/_data/i/galleries/A/b-xl.png
+	"""
+	if not url or not url.startswith("http"):
+		return None
+	u = urlparse(url)
+	path = unquote(u.path)
+	if path.endswith("/i.php") and u.query:
+		path = "/_data/i/" + unquote(u.query.split("&")[0]).lstrip("/")
+	rel = path.lstrip("/")
+	if not rel or ".." in rel.split("/"):
+		return None
+	return f"{folder}/{rel}" if folder else rel
+
+
+def relink_local(job) -> list:
+	"""Point remotely-linked photos at copies of the same files on this server.
+
+	Each photo's original (and, where present, the website's own resized copies) is
+	looked up under the library folder; found files are used in place, so the photos
+	work again straight away. Returns the photos to (re)process for proper resized
+	copies and EXIF details."""
+	folder = safe_subfolder(job.local_folder)
+	root = library_root()
+	names = linked_photo_names()
+	dry = cint(job.dry_run)
+	frappe.db.set_value(DOCTYPE, job.name, "total", len(names), update_modified=False)
+	log(job.name, f"{len(names)} photos are still shown from another website; looking for their files "
+		f"under {os.path.join(root, *folder.split('/')) if folder else root}")
+
+	def local(url):
+		rel = local_path_for_remote(url, folder)
+		if rel and os.path.isfile(os.path.join(root, *rel.split("/"))):
+			return url_for(rel)
+		return None
+
+	done, missing, examples = [], 0, []
+	for i, name in enumerate(names, 1):
+		p = frappe.db.get_value("Photo", name, ["original_url", "large_url", "medium_url", "thumb_url"], as_dict=True)
+		original = local(p.original_url)
+		if not original:
+			missing += 1
+			if len(examples) < 5:
+				examples.append(p.original_url)
+			continue
+		vals = {"original_url": original}
+		for f in ("large_url", "medium_url", "thumb_url"):
+			# use the website's resized copy if it's on the drive; otherwise fall back to
+			# the original until ES Photos has made its own
+			vals[f] = local(p.get(f)) if (p.get(f) or "").startswith("http") else p.get(f)
+		if not dry:
+			frappe.db.set_value("Photo", name, vals, update_modified=False)
+		done.append(name)
+		if i % 500 == 0 and not dry:
+			frappe.db.commit()
+			frappe.db.set_value(DOCTYPE, job.name, "photos_updated", len(done), update_modified=False)
+			frappe.db.commit()
+	# photos whose file isn't on the server are left as they are (counted under "skipped")
+	frappe.db.set_value(
+		DOCTYPE, job.name, {"photos_updated": len(done), "photos_skipped": missing, "total": len(done)},
+		update_modified=False,
+	)
+	verb = "Would switch" if dry else "Switched"
+	log(job.name, f"{verb} {len(done)} photos to the files on this server; "
+		f"{missing} files not found (those photos are left unchanged)")
+	for e in examples:
+		log(job.name, f"  not found: {e}")
+	if not dry:
+		from es_photos.gallery import recount_all
+
+		frappe.db.commit()
+		recount_all()  # album covers now point at local files too
+		frappe.db.commit()
+	return done
 
 
 def linked_photo_names() -> list:

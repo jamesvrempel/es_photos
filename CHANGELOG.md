@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.6.1 — 2026-10-24
+
+### Added
+- **Copy linked photos in → Use files already on this server**: when the old site's folders
+  (e.g. Piwigo's `galleries`, `upload`, `_data`) are on the server under the library folder,
+  linked photos are switched to those files in place — no download or copy — using the old
+  site's resized copies at once (`i.php?/…` derivatives map to `_data/i/…`), then ES Photos
+  makes its own copies in the background. Photos whose file isn't found are left unchanged.
+
+### Changed
+- **Import folder** skips files that gallery photos already use (no duplicates after a
+  relink) and ignores Piwigo's `_data` cache folders.
+- Runbook: step 3a for a drive that already holds Piwigo's storage.
+
 ## 0.6.0 — 2026-10-22
 
 ### Added

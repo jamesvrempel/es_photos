@@ -96,7 +96,28 @@ qm set 102 --delete scsi1          # use the key you noted
 qm set 101 -scsi1 /dev/disk/by-id/usb-WD_Elements_SE_2623_57583732443233394A464C58-0:0
 ```
 
+## Step 3a — the drive already holds Piwigo's photos (Enterprise Systems: this is your case)
+
+If a read-only look at the drive shows Piwigo's folders (`galleries`, `upload`, `_data`),
+**don't format it** — those are the originals the gallery needs. Inside VM 101:
+
+```bash
+sudo mkdir -p /mnt/photos
+echo 'LABEL=piwigo-photos  /mnt/photos  ext4  defaults,noatime,nofail,x-systemd.device-timeout=10  0  2' | sudo tee -a /etc/fstab
+sudo systemctl daemon-reload
+sudo mount /mnt/photos
+sudo mkdir -p /mnt/photos/es_photos/library/piwigo
+sudo mv /mnt/photos/galleries /mnt/photos/upload /mnt/photos/_data /mnt/photos/es_photos/library/piwigo/
+sudo chown enterprise:enterprise /mnt/photos/es_photos /mnt/photos/es_photos/library /mnt/photos/es_photos/library/piwigo
+ls /mnt/photos/es_photos/library/piwigo        # _data  galleries  upload
+```
+
+(`mv` on the same drive is an instant rename.) Then do step 4, skip step 3, and in step 5 use
+**Use files already on this server** instead of downloading.
+
 ## Step 3 — format and mount the drive (ERP VM 101)
+
+*(Skip this step if you followed 3a.)*
 
 > Run steps 3 and 4 **inside the ERP VM** (`ssh enterprise@192.168.0.77`), not on the
 > Proxmox host — on the host the same drive is `/dev/sda`, and formatting it there while
@@ -165,7 +186,14 @@ remove the line again: `sudo sed -i '/photos.tarrant-trading.com/d' /etc/hosts`.
 
 Then in the desk: **ES Photos → Library jobs → + Add**
 * Job: **Copy linked photos in**
-* What to copy: **Original (full size)** (~114 GB) or **Large copy only** (~3 GB)
+* **If you followed step 3a** (Piwigo's folders are on the drive): Where the files come from =
+  **Use files already on this server**, folder = `piwigo`. No downloading — each photo is
+  switched to its original on the drive in a few seconds per thousand photos, using Piwigo's
+  own resized copies straight away, and ES Photos then makes its own copies in the background.
+  The hosts entry above isn't needed. Tick **Dry run** first and check the log says
+  `… files not found` is 0 or close to it.
+* Otherwise: Where the files come from = **Download from the website**, What to copy =
+  **Original (full size)** (~114 GB) or **Large copy only** (~3 GB)
 * Save → **Start**
 
 Progress shows on the job (it refreshes itself). Albums, comments and reactions stay.
@@ -203,6 +231,10 @@ cd ~/frappe-bench && ./env/bin/pip install pillow-heif && sudo supervisorctl res
 ```
 
 Video files are skipped (add videos to the gallery as YouTube/Vimeo links).
+
+When the job has finished, Piwigo's resized copies are no longer used and can be deleted to
+free space: `rm -rf /mnt/photos/es_photos/library/piwigo/_data`. Don't run **Import folder** on
+the `piwigo` folder expecting new albums — files already used by gallery photos are skipped.
 
 ## Step 7 — retire Piwigo
 

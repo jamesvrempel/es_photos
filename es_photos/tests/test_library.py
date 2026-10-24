@@ -161,3 +161,55 @@ class TestCopyLinked(FrappeTestCase):
 		with patch.object(L, "_download", return_value=jpeg(1656, 1104)) as dl:
 			L.copy_linked_photo(doc.name, "Large copy only (about 1200-1600 px)")
 		dl.assert_called_once_with("https://photos.example.com/xl.jpg")  # not the original
+
+
+class TestRelinkLocal(FrappeTestCase):
+	def test_url_mapping(self):
+		f = L.local_path_for_remote
+		self.assertEqual(f("https://p.example.com/galleries/A%20B/x.png", "piwigo"), "piwigo/galleries/A B/x.png")
+		self.assertEqual(f("https://p.example.com/upload/2026/05/06/y.jpg", "piwigo"), "piwigo/upload/2026/05/06/y.jpg")
+		self.assertEqual(f("https://p.example.com/_data/i/galleries/A/x-me.png", "piwigo"), "piwigo/_data/i/galleries/A/x-me.png")
+		self.assertEqual(f("https://p.example.com/i.php?/galleries/A/x-xl.png", "piwigo"), "piwigo/_data/i/galleries/A/x-xl.png")
+		self.assertIsNone(f("/files/local.jpg", "piwigo"))
+		self.assertIsNone(f("https://p.example.com/../../etc/passwd", "piwigo"))
+
+	def test_relink_switches_found_photos_and_leaves_missing(self):
+		folder = f"esp_r_{uuid.uuid4().hex[:8]}"
+		base = os.path.join(L.library_root(), folder)
+		try:
+			_write(os.path.join(base, "galleries", "Trip", "a.jpg"), jpeg(1600, 1000))
+			_write(os.path.join(base, "_data", "i", "galleries", "Trip", "a-me.jpg"), jpeg(400, 250))
+			a = album("Administrator", "ESP R Album")
+
+			def remote(title, fn):
+				d = frappe.get_doc(
+					{"doctype": "Photo", "album": a, "title": title, "media_type": "Image",
+					 "original_url": f"https://p.example.com/galleries/Trip/{fn}",
+					 "thumb_url": f"https://p.example.com/_data/i/galleries/Trip/{fn.replace('.jpg', '-me.jpg')}"}
+				)
+				d.flags.esp_skip_processing = True
+				return d.insert(ignore_permissions=True).name
+
+			found, missing = remote("found", "a.jpg"), remote("missing", "zz.jpg")
+			job = frappe.get_doc(
+				{"doctype": L.DOCTYPE, "job_type": "Copy linked photos in", "copy_source": "Use files already on this server",
+				 "local_folder": folder}
+			).insert(ignore_permissions=True)
+			names = L.relink_local(job)
+			self.assertIn(found, names)
+			self.assertNotIn(missing, names)
+			p = frappe.db.get_value("Photo", found, ["original_url", "thumb_url"], as_dict=True)
+			self.assertEqual(p.original_url, L.url_for(f"{folder}/galleries/Trip/a.jpg"))
+			self.assertEqual(p.thumb_url, L.url_for(f"{folder}/_data/i/galleries/Trip/a-me.jpg"))  # usable at once
+			self.assertTrue(frappe.db.get_value("Photo", missing, "original_url").startswith("https://"))
+			L.process_batch(job.name, names, "render")  # proper ES Photos copies + EXIF
+			p = frappe.db.get_value("Photo", found, ["thumb_url", "width", "camera_model"], as_dict=True)
+			self.assertTrue(p.thumb_url.endswith("-th.jpg"))
+			self.assertEqual((p.width, p.camera_model), (1600, "X-T5"))
+			# a later folder import doesn't create a second photo for the same file
+			imp = frappe.get_doc(
+				{"doctype": L.DOCTYPE, "job_type": "Import folder", "source_folder": folder, "album_owner": "Administrator"}
+			).insert(ignore_permissions=True)
+			self.assertEqual(L.scan_folder(imp), [])
+		finally:
+			shutil.rmtree(base, ignore_errors=True)

@@ -14,6 +14,8 @@ class PhotoLibraryJob(Document):
 
 	def validate(self):
 		self.library_path = L.library_root()
+		if self.job_type == "Copy linked photos in" and (self.copy_source or "").startswith("Use files"):
+			self.local_folder = L.safe_subfolder(self.local_folder)
 		if self.job_type == "Import folder":
 			L.safe_subfolder(self.source_folder)  # raises on ../ or absolute paths
 			if not self.album_owner:
