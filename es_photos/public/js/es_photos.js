@@ -433,24 +433,57 @@
       });
     }
 
+    var PHOTO_EXT = /\.(jpe?g|png|webp|gif|tiff?|bmp|heic|heif)$/i;
+    var maxBytes = (CFG.max_mb || 0) * 1048576;
+    var failed = 0;
+
+    function fail(job, msg) {
+      failed++;
+      job.el.classList.add("err");
+      job.el.querySelector(".esp-q-state").textContent = "failed";
+      var m = job.el.querySelector(".esp-q-msg");
+      m.textContent = msg; m.hidden = false;
+      job.el.title = job.file.name + ": " + msg;
+    }
+
     function addFiles(files) {
-      files = Array.prototype.filter.call(files, function (f) { return /^image\//.test(f.type) || /\.(heic|tiff?)$/i.test(f.name); });
+      var all = Array.prototype.slice.call(files);
+      // some phones / cloud folders report no type, so accept by extension too
+      files = all.filter(function (f) { return /^image\//.test(f.type) || PHOTO_EXT.test(f.name); });
+      var skipped = all.length - files.length;
+      if (skipped) toast(skipped + (skipped === 1 ? " file isn't" : " files aren't") + " a photo and " + (skipped === 1 ? "was" : "were") + " skipped.");
       if (!files.length) return;
       ensureAlbum().then(function () {
         files.forEach(function (f) {
           var el = document.createElement("div");
           el.className = "esp-q";
-          el.innerHTML = '<img alt=""><span class="esp-q-state">waiting</span><i class="esp-q-bar"></i>';
+          el.innerHTML = '<img alt=""><span class="esp-q-state">waiting</span><i class="esp-q-bar"></i><span class="esp-q-msg" hidden></span>';
           try { el.querySelector("img").src = URL.createObjectURL(f); } catch (e) { /* preview optional */ }
           queue.appendChild(el);
-          pending.push({ file: f, el: el });
+          var job = { file: f, el: el };
+          if (maxBytes && f.size > maxBytes) {
+            fail(job, "Too large: " + (f.size / 1048576).toFixed(1) + " MB (limit " + CFG.max_mb + " MB)");
+            return;
+          }
+          pending.push(job);
         });
         pump();
       }).catch(function (err) { toast(esc(err.message)); });
     }
 
+    function httpMsg(xhr, data) {
+      if (xhr.status === 413) return "Too large for the web server (nginx client_max_body_size or proxy limit)";
+      if (xhr.status === 403) return errMsg(data, "Not allowed — your session may have expired; reload the page");
+      if (xhr.status === 0) return "Connection lost during upload";
+      if (xhr.status >= 500) return errMsg(data, "Server error " + xhr.status + " — see Error Log in the desk");
+      return errMsg(data, "Upload failed (HTTP " + xhr.status + ")");
+    }
+
     function pump() {
       while (active < 3 && pending.length) send(pending.shift());
+      if (!active && !pending.length && failed) {
+        toast(failed + " photo" + (failed === 1 ? "" : "s") + " couldn't be uploaded — the reason is shown on each red one.");
+      }
       if (!active && !pending.length && uploaded) {
         done.hidden = false;
         done.innerHTML = "✅ " + uploaded + " photo" + (uploaded === 1 ? "" : "s") + ' uploaded. <a href="' +
@@ -477,12 +510,11 @@
           uploaded++; state.textContent = "✓"; barEl.style.width = "100%";
           var img = job.el.querySelector("img"); if (data.message.thumb) img.src = data.message.thumb;
         } else {
-          job.el.classList.add("err"); state.textContent = "failed";
-          job.el.title = errMsg(data, "Upload failed");
+          fail(job, httpMsg(xhr, data));
         }
         pump();
       };
-      xhr.onerror = function () { active--; job.el.classList.add("err"); state.textContent = "failed"; pump(); };
+      xhr.onerror = function () { active--; fail(job, httpMsg(xhr, {})); pump(); };
       xhr.send(fd);
     }
 

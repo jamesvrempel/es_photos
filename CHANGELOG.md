@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.6.2 — 2026-10-24
+
+### Fixed
+- Upload page: a failed photo now shows **why** on the photo itself (too large, web-server
+  limit, session expired, server error) instead of only "failed"; a summary message appears
+  when uploads fail.
+- Photos over the upload limit are rejected in the browser before uploading, with the size
+  and the limit.
+- Photos whose browser-reported type is empty (some phones / cloud folders) are accepted by
+  file extension instead of being silently ignored; non-photos are reported.
+
+### Note
+- The upload limit is **ES Photos Settings → Max upload size (MB)**; when 0 it uses
+  **ES Social Settings → Max upload size**, whose default is only **5 MB** — too small for
+  most camera photos. Set one of them to 50 or more.
+
 ## 0.6.1 — 2026-10-24
 
 ### Added

@@ -89,6 +89,7 @@ def get_context(context):
 			"photo": context.get("photo_name"),
 			"keyword": context.get("keyword_name"),
 			"sort": frappe.form_dict.get("sort"),
+			"max_mb": context.get("max_mb"),
 			"slideshow_seconds": min(cint(s.slideshow_seconds), 120) if cint(s.slideshow_seconds) >= 1 else 5,
 		}
 	)
