@@ -1,0 +1,461 @@
+{% extends "templates/web.html" %}
+{% from "templates/includes/es_photos/macros.html" import avatar, album_grid, photo_grid, pager, sort_select, album_sort_select, privacy_badge with context %}
+
+{% block title %}{{ (title)|e }}{% endblock %}
+
+{% block head_include %}
+<link rel="stylesheet" href="/assets/es_social/css/es_social.css?v={{ es_v }}">
+<link rel="stylesheet" href="{{ esp_asset('/assets/es_photos/css/es_photos.css') }}">
+{% endblock %}
+
+{% block page_content %}
+<div class="es-social esp" data-page="gallery" data-view="{{ view }}">
+  <div class="es-topbar">
+    <div class="es-brand"><a href="/social">{{ (brand)|e }}</a></div>
+    <form class="es-search esp-search" action="{{ base }}/search" method="get" role="search">
+      <input name="q" type="search" placeholder="{{ _('Search photos…') }}" value="{{ (q or '')|e }}" autocomplete="off">
+    </form>
+    {# ES Social's own nav: Gallery is added through the es_social_nav_links hook
+       (es_social >= 0.9.7) or, on older ES Social, by es_social_nav.js #}
+    {% include "templates/includes/es_social_nav.html" %}
+  </div>
+
+  <div class="es-layout esp-layout">
+    {# ------------------------------------------------------------- sidebar #}
+    <aside class="es-aside esp-aside">
+      <div class="es-card esp-side-card">
+        <a class="esp-side-title" href="{{ base }}">📷 {{ (gallery_title)|e }}</a>
+        {% if settings.tagline %}<p class="es-muted">{{ (settings.tagline)|e }}</p>{% endif %}
+        {% if can_upload %}
+        <a class="es-btn es-btn-primary es-block esp-upload-btn" href="{{ base }}/upload{% if album_name and can_edit %}?album={{ album_name }}{% endif %}">＋ {{ _("Upload photos") }}</a>
+        {% elif viewer.guest %}
+        <p class="es-muted">{{ _("Browsing as a guest.") }} <a href="{{ signup_url }}">{{ _("Sign up") }}</a> {{ _("to react, comment and share.") }}</p>
+        {% endif %}
+      </div>
+
+      <div class="es-card esp-side-card">
+        <div class="es-card-title">{{ _("Discover") }}</div>
+        <ul class="esp-links">
+          <li><a href="{{ base }}/recent" {% if view=='recent' %}class="active"{% endif %}>🆕 {{ _("Recent photos") }}</a></li>
+          <li><a href="{{ base }}/recent-albums" {% if view=='recent-albums' %}class="active"{% endif %}>🗂️ {{ _("Recent albums") }}</a></li>
+          <li><a href="{{ base }}/most-visited" {% if view=='most-visited' %}class="active"{% endif %}>🔥 {{ _("Most visited") }}</a></li>
+          <li><a href="{{ base }}/random" {% if view=='random' %}class="active"{% endif %}>🎲 {{ _("Random photos") }}</a></li>
+          <li><a href="{{ base }}/calendar" {% if view=='calendar' %}class="active"{% endif %}>📅 {{ _("Calendar") }}</a></li>
+          <li><a href="{{ base }}/keywords" {% if view in ('keywords','keyword') %}class="active"{% endif %}>🏷️ {{ _("Keywords") }}</a></li>
+        </ul>
+      </div>
+
+      {% if aside_albums %}
+      <div class="es-card esp-side-card">
+        <div class="es-card-title">{{ _("Albums") }}</div>
+        <ul class="esp-links esp-album-links">
+          {% for a in aside_albums %}
+          <li><a href="{{ base }}/album/{{ a.name }}" {% if album_name == a.name %}class="active"{% endif %}><span>{{ (a.title)|e }}</span><span class="esp-count">{{ a.total_photo_count or 0 }}</span></a></li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if aside_keywords %}
+      <div class="es-card esp-side-card">
+        <div class="es-card-title">{{ _("Keywords") }}</div>
+        <div class="esp-chips">
+          {% for k in aside_keywords %}<a class="esp-chip" href="{{ base }}/keyword/{{ k.slug }}">{{ (k.name)|e }}</a>{% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </aside>
+
+    {# ------------------------------------------------------------- main #}
+    <main class="es-main esp-main">
+      {# phones: the sidebar is hidden, so surface its links as a scrolling strip #}
+      <nav class="esp-mobile-strip" aria-label="{{ _('Gallery') }}">
+        <a href="{{ base }}" {% if view=='home' %}class="active"{% endif %}>📷 {{ _("Albums") }}</a>
+        <a href="{{ base }}/search" {% if view=='search' %}class="active"{% endif %}>🔎 {{ _("Search") }}</a>
+        <a href="{{ base }}/recent" {% if view=='recent' %}class="active"{% endif %}>🆕 {{ _("Recent") }}</a>
+        <a href="{{ base }}/most-visited" {% if view=='most-visited' %}class="active"{% endif %}>🔥 {{ _("Popular") }}</a>
+        <a href="{{ base }}/random" {% if view=='random' %}class="active"{% endif %}>🎲 {{ _("Random") }}</a>
+        <a href="{{ base }}/calendar" {% if view=='calendar' %}class="active"{% endif %}>📅 {{ _("Calendar") }}</a>
+        <a href="{{ base }}/keywords" {% if view in ('keywords','keyword') %}class="active"{% endif %}>🏷️ {{ _("Keywords") }}</a>
+        {% if can_upload %}<a href="{{ base }}/upload" {% if view=='upload' %}class="active"{% endif %}>＋ {{ _("Upload") }}</a>{% endif %}
+      </nav>
+      {% if breadcrumbs_list %}
+      <nav class="esp-crumbs" aria-label="breadcrumb">
+        {% for c in breadcrumbs_list %}
+          {% if c.url %}<a href="{{ c.url }}">{{ c.label }}</a>{% else %}<span>{{ c.label }}</span>{% endif %}
+          {% if not loop.last %}<span class="esp-sep">›</span>{% endif %}
+        {% endfor %}
+      </nav>
+      {% endif %}
+
+      {# ===== HOME ===== #}
+      {% if view == "home" %}
+      <section class="es-card esp-hero">
+        <div>
+          <h1 class="esp-h1">{{ (gallery_title)|e }}</h1>
+          <div class="es-muted">{{ albums|length }} {{ _("albums") }} · {{ total_photos }} {{ _("photos") }}</div>
+        </div>
+        <div class="esp-hero-tools">
+          {% if albums|length > 1 %}{{ album_sort_select(asort, album_orders, default_album_key) }}{% endif %}
+          <div class="esp-view-toggle" role="group" aria-label="{{ _('Layout') }}">
+            <button type="button" data-esp-layout="grid" class="active" title="{{ _('Grid view') }}">▦</button>
+            <button type="button" data-esp-layout="list" title="{{ _('List view') }}">☰</button>
+          </div>
+        </div>
+      </section>
+      {% if albums %}{{ album_grid(albums, base) }}{% else %}
+      <div class="es-card es-center es-muted">{{ _("No albums yet.") }}{% if can_upload %} <a href="{{ base }}/upload">{{ _("Create the first one") }}</a>.{% endif %}</div>
+      {% endif %}
+
+      {% if recent %}
+      <section class="es-card">
+        <div class="es-card-head"><div class="es-card-title">🆕 {{ _("Recently added") }}</div><a class="es-btn" href="{{ base }}/recent">{{ _("See all") }}</a></div>
+        {{ photo_grid(recent, base, photo_src) }}
+      </section>
+      {% endif %}
+
+      {% if community %}
+      <section class="es-card">
+        <div class="es-card-head"><div class="es-card-title">👥 {{ _("From the community") }}</div><a class="es-btn" href="/social/photos">{{ _("All member photos") }}</a></div>
+        <div class="esp-albums esp-albums-sm">
+          {% for a in community %}
+          <a class="esp-album" href="/social/album/{{ a.slug or a.name }}">
+            <span class="esp-album-cover">{% if a.cover_image %}<img src="{{ a.cover_image }}" alt="" loading="lazy">{% else %}<span class="esp-album-empty">🖼️</span>{% endif %}</span>
+            <span class="esp-album-meta">
+              <span class="esp-album-title">{{ (a.title)|e }}</span>
+              <span class="esp-muted">{{ avatar(a.owner, 16) }} {{ (a.owner.display_name)|e }} · {{ a.photo_count }}</span>
+            </span>
+          </a>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+      {# ===== ALBUM ===== #}
+      {% elif view == "album" %}
+      <section class="es-card esp-album-head">
+        <div class="esp-album-head-main">
+          <h1 class="esp-h1">{{ (album.title)|e }} {{ privacy_badge(album.privacy) }}</h1>
+          <div class="esp-byline es-muted">
+            <a href="{{ (album_owner.photos_url)|e }}">{{ avatar(album_owner, 20) }} {{ (album_owner.display_name)|e }}</a>
+            · {{ pg.total if pg else 0 }} {{ _("photos") }}
+            {% if album.date_last %}· {{ _("updated") }} {{ fmt_dt(album.date_last) }}{% endif %}
+          </div>
+          {% if album.description %}<p class="esp-desc">{{ (album.description)|e }}</p>{% endif %}
+        </div>
+        <div class="esp-actions">
+          {% if photos %}<button type="button" class="es-btn es-btn-primary" data-esp-slideshow>▶ {{ _("Slideshow") }}</button>{% endif %}
+          {% if album.social_post %}<a class="es-btn" href="/social?post={{ album.social_post }}">💬 {{ _("Discuss in feed") }}</a>{% endif %}
+          {% if can_edit %}
+            <a class="es-btn" href="{{ base }}/upload?album={{ (album.name)|e }}">＋ {{ _("Add photos") }}</a>
+            {% if album.privacy != "Only Me" and not album.social_post %}<button type="button" class="es-btn" data-esp-post-album>📣 {{ _("Post to feed") }}</button>{% endif %}
+            <button type="button" class="es-btn" data-esp-edit-album>✎ {{ _("Edit") }}</button>
+            {% if viewer.manager %}<a class="es-btn" href="/app/photo-album/{{ (album.name)|e }}">⚙</a>{% endif %}
+          {% endif %}
+        </div>
+      </section>
+
+      {% if subalbums %}{{ album_grid(subalbums, base) }}{% endif %}
+
+      {% if photos %}
+      <section class="es-card esp-photos-card">
+        <div class="esp-toolbar">
+          {{ sort_select(sort) }}
+          <div class="esp-view-toggle" role="group">
+            <button type="button" data-esp-layout="grid" class="active" title="{{ _('Grid view') }}">▦</button>
+            <button type="button" data-esp-layout="list" title="{{ _('List view') }}">☰</button>
+          </div>
+        </div>
+        {{ photo_grid(photos, base, photo_src, album.name) }}
+        {{ pager(pg) }}
+      </section>
+      {% elif not subalbums %}
+      <div class="es-card es-center es-muted">{{ _("This album is empty.") }}</div>
+      {% endif %}
+
+      {% if can_edit %}
+      <template id="esp-album-form-tpl">
+        <form class="esp-form" data-esp-album-form>
+          <input type="hidden" name="name" value="{{ (album.name)|e }}">
+          <label>{{ _("Title") }}<input name="title" required maxlength="140" value="{{ (album.title)|e }}"></label>
+          <label>{{ _("Description") }}<textarea name="description" rows="3">{{ (album.description or '')|e }}</textarea></label>
+          <label>{{ _("Who can see it") }}
+            <select name="privacy" data-esp-privacy>
+              {% for p in ["Public", "Connections", "Group", "Only Me"] %}<option value="{{ p }}"{% if album.privacy == p %} selected{% endif %}>{{ _(p) }}</option>{% endfor %}
+            </select>
+          </label>
+          <label data-esp-group-field {% if album.privacy != "Group" %}hidden{% endif %}>{{ _("Group") }}
+            <select name="social_group">
+              <option value=""></option>
+              {% for g in groups_for_select %}<option value="{{ g.name }}"{% if album.social_group == g.name %} selected{% endif %}>{{ (g.title or g.name)|e }}</option>{% endfor %}
+            </select>
+          </label>
+          <label>{{ _("Photo order") }}
+            <select name="image_order">
+              <option value=""{% if not album.image_order %} selected{% endif %}>{{ _("Gallery default") }} ({{ default_order }})</option>
+              {% for o in ["Date added (newest first)", "Date added (oldest first)", "Date taken (newest first)", "Date taken (oldest first)", "Title", "Most viewed", "Manual"] %}<option{% if album.image_order == o %} selected{% endif %}>{{ o }}</option>{% endfor %}
+            </select>
+          </label>
+          <input type="hidden" name="parent_photo_album" value="{{ album.parent_photo_album or '' }}">
+          <div class="esp-form-actions"><button type="button" class="es-btn" data-esp-close>{{ _("Cancel") }}</button><button class="es-btn es-btn-primary">{{ _("Save") }}</button></div>
+        </form>
+      </template>
+      {% endif %}
+
+      {# ===== PHOTO ===== #}
+      {% elif view == "photo" %}
+      <section class="esp-photo-wrap">
+        <div class="esp-stage" data-esp-stage>
+          {% if embed %}
+            <div class="esp-video"><iframe src="{{ embed }}" title="{{ (photo.title)|e }}" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>
+          {% else %}
+            <img class="esp-main-img" src="{{ src }}" alt="{{ (photo.title)|e }}" {% if photo.width %}width="{{ photo.width }}" height="{{ photo.height }}"{% endif %} data-esp-open>
+          {% endif %}
+          {% if prev %}<a class="esp-nav-arrow esp-prev" href="{{ base }}/photo/{{ prev.name }}?album={{ (album.name)|e }}" rel="prev" data-esp-prev title="{{ _('Previous') }} (←)">‹</a>{% endif %}
+          {% if next %}<a class="esp-nav-arrow esp-next" href="{{ base }}/photo/{{ next.name }}?album={{ (album.name)|e }}" rel="next" data-esp-next title="{{ _('Next') }} (→)">›</a>{% endif %}
+        </div>
+        <div class="esp-stage-bar">
+          <span class="es-muted">{{ pos }} / {{ count }}</span>
+          <div class="esp-actions">
+            {% if not embed %}<button type="button" class="es-btn" data-esp-fullscreen title="{{ _('Fullscreen') }}">⛶</button>{% endif %}
+            <button type="button" class="es-btn" data-esp-slideshow>▶ {{ _("Slideshow") }}</button>
+            {% if settings.enable_downloads and not embed and src_original %}<a class="es-btn" href="{{ src_original }}" download target="_blank" rel="noopener">⬇ {{ _("Download") }}</a>{% endif %}
+          </div>
+        </div>
+      </section>
+
+      <div class="esp-photo-cols">
+        <section class="es-card esp-photo-info">
+          <h1 class="esp-h1" data-esp-photo-title>{{ (photo.title)|e }}</h1>
+          <div class="esp-byline es-muted">
+            {% if uploader %}<a href="{{ (uploader.photos_url)|e }}">{{ avatar(uploader, 20) }} {{ (uploader.display_name)|e }}</a> · {% endif %}
+            <a href="{{ base }}/album/{{ (album.name)|e }}">{{ (album.title)|e }}</a>
+            {% if photo.date_taken %}· {{ _("taken") }} {{ fmt_dt(photo.date_taken) }}{% endif %}
+          </div>
+          {% if photo.description %}<p class="esp-desc" data-esp-photo-desc>{{ (photo.description)|e }}</p>{% endif %}
+
+          {% if keywords %}<div class="esp-chips">{% for k in keywords %}<a class="esp-chip" href="{{ base }}/keyword/{{ k.slug }}">🏷️ {{ (k.name)|e }}</a>{% endfor %}</div>{% endif %}
+
+          {% if settings.enable_reactions %}
+          <div class="esp-reactbar" data-esp-reactbar>
+            <div class="esp-react-wrap">
+              <button type="button" class="es-btn esp-react-btn{% if reactions.mine %} active{% endif %}" data-esp-react="{{ reactions.mine or 'Like' }}">
+                <span data-esp-react-emoji>{{ reactions.mine_emoji or "👍" }}</span> <span data-esp-react-label>{{ _(reactions.mine) if reactions.mine else _("Like") }}</span>
+              </button>
+              <div class="esp-react-picker" role="menu">
+                {% for k, e in reaction_types.items() %}<button type="button" data-esp-pick="{{ k }}" title="{{ _(k) }}">{{ e }}</button>{% endfor %}
+              </div>
+            </div>
+            <span class="esp-react-summary es-muted" data-esp-react-summary>{% if reactions.total %}{{ reactions.top|join('') }} {{ reactions.total }}{% endif %}</span>
+            {% if can_share %}<button type="button" class="es-btn" data-esp-share>↗ {{ _("Share to feed") }}</button>{% endif %}
+          </div>
+          {% endif %}
+
+          {% if settings.enable_comments %}
+          <div class="esp-comments" data-esp-comments>
+            <div class="es-card-title">💬 {{ _("Comments") }} <span class="es-muted" data-esp-comment-count>{{ comments|length or '' }}</span></div>
+            <div class="esp-comment-list" data-esp-comment-list>
+              {% for c in comments %}
+              <div class="esp-comment" data-name="{{ c.name }}">
+                <a href="{{ (c.author_url)|e }}">{{ avatar({'profile_image': c.author_image, 'initials': c.author_initials}, 30) }}</a>
+                <div class="esp-comment-body">
+                  <div><a class="esp-comment-author" href="{{ (c.author_url)|e }}">{{ (c.author_name)|e }}</a> <span class="es-muted">{{ c.when }}{% if c.pending %} · {{ _("awaiting review") }}{% endif %}</span></div>
+                  <div class="esp-comment-text">{{ c.content }}</div>
+                  {% if c.can_delete %}<button type="button" class="es-btn-link" data-esp-del-comment="{{ c.name }}">{{ _("Delete") }}</button>{% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% if viewer.guest %}
+            <p class="es-muted"><a href="{{ login_url }}">{{ _("Log in") }}</a> {{ _("or") }} <a href="{{ signup_url }}">{{ _("sign up") }}</a> {{ _("to comment.") }}</p>
+            {% else %}
+            <form class="esp-comment-form" data-esp-comment-form>
+              {{ avatar(me, 30) }}
+              <textarea name="content" rows="1" maxlength="2000" placeholder="{{ _('Write a comment…') }}" required></textarea>
+              <button class="es-btn es-btn-primary">{{ _("Post") }}</button>
+            </form>
+            {% endif %}
+          </div>
+          {% endif %}
+        </section>
+
+        <aside class="es-card esp-photo-meta">
+          <div class="es-card-title">{{ _("Details") }}</div>
+          <dl class="esp-dl">
+            {% if photo.date_taken %}<dt>{{ _("Taken") }}</dt><dd><a href="{{ base }}/calendar/{{ photo.date_taken.year }}/{{ photo.date_taken.month }}/{{ photo.date_taken.day }}">{{ fmt_dt(photo.date_taken) }}</a></dd>{% endif %}
+            <dt>{{ _("Added") }}</dt><dd>{{ fmt_dt(photo.date_added) }}</dd>
+            {% if photo.width %}<dt>{{ _("Size") }}</dt><dd>{{ photo.width }} × {{ photo.height }}{% if photo.filesize %} · {{ human_size(photo.filesize) }}{% endif %}</dd>{% endif %}
+            <dt>{{ _("Views") }}</dt><dd>{{ (photo.view_count or 0) + 1 }}</dd>
+            <dt>{{ _("Album") }}</dt><dd><a href="{{ base }}/album/{{ (album.name)|e }}">{{ (album.title)|e }}</a>{% for o in other_albums %}, <a href="{{ base }}/album/{{ o.name }}">{{ (o.title)|e }}</a>{% endfor %}</dd>
+            {% for k, val in exif %}<dt>{{ k }}</dt><dd>{{ val }}</dd>{% endfor %}
+            {% if photo.latitude and photo.longitude %}<dt>{{ _("Location") }}</dt><dd><a href="https://www.openstreetmap.org/?mlat={{ photo.latitude }}&mlon={{ photo.longitude }}#map=13/{{ photo.latitude }}/{{ photo.longitude }}" target="_blank" rel="noopener">🗺 {{ "%.4f"|format(photo.latitude) }}, {{ "%.4f"|format(photo.longitude) }}</a></dd>{% endif %}
+          </dl>
+          {% if can_edit %}
+          <div class="esp-owner-tools">
+            <button type="button" class="es-btn" data-esp-edit-photo>✎ {{ _("Edit") }}</button>
+            {% if can_set_cover %}<button type="button" class="es-btn" data-esp-cover>★ {{ _("Album cover") }}</button>{% endif %}
+            <button type="button" class="es-btn es-btn-danger" data-esp-delete-photo>🗑 {{ _("Delete") }}</button>
+            {% if viewer.manager %}<a class="es-btn" href="/app/photo/{{ (photo.name)|e }}">⚙</a>{% endif %}
+          </div>
+          <template id="esp-photo-form-tpl">
+            <form class="esp-form" data-esp-photo-form>
+              <label>{{ _("Title") }}<input name="title" maxlength="140" value="{{ (photo.title or '')|e }}"></label>
+              <label>{{ _("Description") }}<textarea name="description" rows="3">{{ (photo.description or '')|e }}</textarea></label>
+              <label>{{ _("Keywords") }} <span class="es-muted">({{ _("comma separated") }})</span><input name="keywords" value="{{ (keywords|map(attribute='name')|join(', '))|e }}"></label>
+              <div class="esp-form-actions"><button type="button" class="es-btn" data-esp-close>{{ _("Cancel") }}</button><button class="es-btn es-btn-primary">{{ _("Save") }}</button></div>
+            </form>
+          </template>
+          {% endif %}
+          {% if prev or next %}
+          <div class="esp-filmstrip">
+            {% if prev %}<a href="{{ base }}/photo/{{ prev.name }}?album={{ (album.name)|e }}"><img src="{{ photo_src(prev, 'thumb') }}" alt="" loading="lazy"><span>‹ {{ _("Previous") }}</span></a>{% endif %}
+            {% if next %}<a href="{{ base }}/photo/{{ next.name }}?album={{ (album.name)|e }}"><img src="{{ photo_src(next, 'thumb') }}" alt="" loading="lazy"><span>{{ _("Next") }} ›</span></a>{% endif %}
+          </div>
+          {% endif %}
+        </aside>
+      </div>
+
+      {# ===== KEYWORD CLOUD ===== #}
+      {% elif view == "keywords" %}
+      <section class="es-card">
+        <h1 class="esp-h1">🏷️ {{ _("Keywords") }}</h1>
+        {% if cloud %}
+        <div class="esp-cloud">
+          {% for k in cloud %}<a class="esp-cloud-{{ k.level }}" href="{{ base }}/keyword/{{ k.slug }}">{{ (k.name)|e }} <sup>{{ k.n }}</sup></a>{% endfor %}
+        </div>
+        {% else %}<p class="es-muted">{{ _("No keywords yet.") }}</p>{% endif %}
+      </section>
+
+      {# ===== RECENT ALBUMS ===== #}
+      {% elif view == "recent-albums" %}
+      <section class="es-card"><h1 class="esp-h1">{{ (heading)|e }}</h1></section>
+      {{ album_grid(albums, base) }}
+
+      {# ===== CALENDAR ===== #}
+      {% elif view == "calendar" %}
+      <section class="es-card">
+        <h1 class="esp-h1">📅 {{ (heading)|e }}</h1>
+        <div class="es-muted">{{ (subheading)|e }}</div>
+        {% if cal_items %}
+        <div class="esp-cal-list">
+          {% for it in cal_items %}<a class="esp-cal-item" href="{{ it.url }}"><b>{{ (it.label)|e }}</b><span class="es-muted">{{ it.n }} {{ _("photos") }}</span></a>{% endfor %}
+        </div>
+        {% elif month_grid %}
+        <div class="esp-month">
+          {% for wd in ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"] %}<div class="esp-wd">{{ _(wd) }}</div>{% endfor %}
+          {% for i in range(month_grid.lead) %}<div></div>{% endfor %}
+          {% for d in month_grid.days %}
+            {% if d.n %}<a class="esp-day has{% if d.day == cal_day %} active{% endif %}" href="{{ d.url }}"><b>{{ d.day }}</b><span>{{ d.n }}</span></a>
+            {% else %}<div class="esp-day">{{ d.day }}</div>{% endif %}
+          {% endfor %}
+        </div>
+        {% elif not cal_year %}<p class="es-muted">{{ _("No dated photos yet.") }}</p>
+        {% endif %}
+      </section>
+      {% if photos %}<section class="es-card">{{ photo_grid(photos, base, photo_src) }}{{ pager(pg) }}</section>{% endif %}
+
+      {# ===== SEARCH ===== #}
+      {% elif view == "search" %}
+      <section class="es-card">
+        <h1 class="esp-h1">🔎 {{ (heading)|e }}</h1>
+        <form class="esp-search-big" action="{{ base }}/search" method="get">
+          <input name="q" type="search" value="{{ (q)|e }}" placeholder="{{ _('Title, description, keyword or album') }}" autofocus>
+          <button class="es-btn es-btn-primary">{{ _("Search") }}</button>
+        </form>
+        {% if q %}<div class="es-muted">{{ (subheading)|e }}</div>{% endif %}
+      </section>
+      {% if albums %}{{ album_grid(albums, base) }}{% endif %}
+      {% if photos %}<section class="es-card">{{ photo_grid(photos, base, photo_src) }}{{ pager(pg) }}</section>
+      {% elif q %}<div class="es-card es-center es-muted">{{ _("Nothing found.") }}</div>{% endif %}
+
+      {# ===== UPLOAD ===== #}
+      {% elif view == "upload" %}
+      <section class="es-card esp-upload" data-esp-upload>
+        <h1 class="esp-h1">＋ {{ (heading)|e }}</h1>
+        <div class="esp-upload-album">
+          <label>{{ _("Album") }}
+            <select name="album" data-esp-upload-album>
+              <option value="">{{ _("— New album —") }}</option>
+              {% for a in my_albums %}<option value="{{ a.name }}"{% if selected_album == a.name %} selected{% endif %}>{{ (a.title)|e }}</option>{% endfor %}
+            </select>
+          </label>
+          <div class="esp-new-album" data-esp-new-album {% if selected_album %}hidden{% endif %}>
+            <label>{{ _("New album title") }}<input name="title" maxlength="140" placeholder="{{ _('e.g. Walpole WA AU October 2026') }}"></label>
+            <label>{{ _("Inside album (optional)") }}
+              <select name="parent_photo_album"><option value=""></option>{% for a in my_albums %}<option value="{{ a.name }}">{{ (a.title)|e }}</option>{% endfor %}</select>
+            </label>
+            <label>{{ _("Who can see it") }}
+              <select name="privacy" data-esp-privacy>{% for p in ["Public", "Connections", "Group", "Only Me"] %}<option value="{{ p }}"{% if settings.default_privacy == p %} selected{% endif %}>{{ _(p) }}</option>{% endfor %}</select>
+            </label>
+            <label data-esp-group-field hidden>{{ _("Group") }}
+              <select name="social_group"><option value=""></option>{% for g in groups_for_select %}<option value="{{ g.name }}">{{ (g.title or g.name)|e }}</option>{% endfor %}</select>
+            </label>
+            <label>{{ _("Description") }}<textarea name="description" rows="2"></textarea></label>
+          </div>
+        </div>
+        <div class="esp-drop" data-esp-drop tabindex="0">
+          <div class="esp-drop-inner">
+            <div class="esp-drop-icon">⬆</div>
+            <b>{{ _("Drop photos here") }}</b>
+            <span class="es-muted">{{ _("or click to choose — JPEG, PNG, WebP up to {0} MB each").format(max_mb) }}</span>
+          </div>
+          <input type="file" accept="image/*" multiple hidden data-esp-file>
+        </div>
+        <details class="esp-video-add">
+          <summary>{{ _("Add a YouTube or Vimeo video instead") }}</summary>
+          <div class="esp-inline"><input name="video_url" placeholder="https://www.youtube.com/watch?v=…" data-esp-video-url><input name="video_title" placeholder="{{ _('Title') }}" data-esp-video-title><button type="button" class="es-btn" data-esp-add-video>{{ _("Add video") }}</button></div>
+        </details>
+        <div class="esp-queue" data-esp-queue></div>
+        <div class="esp-upload-done" data-esp-upload-done hidden></div>
+      </section>
+
+      {# ===== PHOTO LISTS (recent / most visited / random / keyword) ===== #}
+      {% else %}
+      <section class="es-card esp-list-head">
+        <div{% if member %} class="esp-member-head"{% endif %}>
+          {% if member %}{{ avatar(member, 56) }}{% endif %}
+          <div>
+          <h1 class="esp-h1">{{ (heading)|e }}</h1>
+          {% if subheading %}<div class="es-muted">{{ (subheading)|e }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="esp-actions">
+          {% if member and member.profile_url %}<a class="es-btn" href="{{ (member.profile_url)|e }}">👤 {{ _("Profile") }}</a>{% endif %}
+          {% if photos %}<button type="button" class="es-btn es-btn-primary" data-esp-slideshow>▶ {{ _("Slideshow") }}</button>{% endif %}
+          {% if random %}<a class="es-btn" href="{{ base }}/random">🎲 {{ _("Shuffle") }}</a>{% endif %}
+          {% if view == "keyword" %}{{ sort_select(sort) }}{% endif %}
+        </div>
+      </section>
+      {% if member and albums %}{{ album_grid(albums, base) }}{% endif %}
+      {% if photos %}<section class="es-card">{{ photo_grid(photos, base, photo_src) }}{{ pager(pg) }}</section>
+      {% else %}<div class="es-card es-center es-muted">{{ _("No photos here yet.") }}</div>{% endif %}
+      {% endif %}
+    </main>
+  </div>
+
+  <footer class="esp-foot es-muted">{{ _("Photos on") }} {{ (brand)|e }} · <a href="/social">ES Social</a></footer>
+</div>
+
+<div class="esp-viewer" data-esp-viewer hidden aria-modal="true" role="dialog">
+  <div class="esp-viewer-top">
+    <span class="esp-viewer-title" data-esp-v-title></span>
+    <span class="esp-viewer-count" data-esp-v-count></span>
+    <button type="button" data-esp-v-play title="{{ _('Play / pause') }} (space)">⏯</button>
+    <label class="esp-viewer-speed" title="{{ _('Seconds per photo') }} ( - / + )">
+      <span aria-hidden="true">⏱</span>
+      <select data-esp-v-speed aria-label="{{ _('Seconds per photo') }}"></select>
+    </label>
+    <a data-esp-v-link title="{{ _('Open photo page') }}">↗</a>
+    <button type="button" data-esp-v-close title="{{ _('Close') }} (Esc)">✕</button>
+  </div>
+  <button type="button" class="esp-viewer-nav prev" data-esp-v-prev aria-label="{{ _('Previous') }}">‹</button>
+  <div class="esp-viewer-stage" data-esp-v-stage></div>
+  <button type="button" class="esp-viewer-nav next" data-esp-v-next aria-label="{{ _('Next') }}">›</button>
+  <div class="esp-viewer-progress"><i data-esp-v-progress></i></div>
+</div>
+
+<div class="esp-modal" data-esp-modal hidden><div class="esp-modal-box es-card" data-esp-modal-box></div></div>
+
+<script>window.ESP_CFG = {{ cfg_json }};</script>
+<script src="{{ esp_asset('/assets/es_photos/js/es_photos.js') }}" defer></script>
+{% endblock %}

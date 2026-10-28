@@ -1,0 +1,220 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-18 20:30:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "sb_general",
+  "gallery_title",
+  "tagline",
+  "photos_per_page",
+  "slideshow_seconds",
+  "default_album_order",
+  "album_order",
+  "default_privacy",
+  "cb_g1",
+  "allow_member_albums",
+  "max_upload_mb",
+  "enable_downloads",
+  "show_exif",
+  "enable_comments",
+  "enable_reactions",
+  "show_community_albums",
+  "feed_preview_photos",
+  "sb_backup",
+  "exclude_from_google_drive",
+  "cb_b1",
+  "gallery_storage_note"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb_general",
+   "fieldtype": "Section Break",
+   "idx": 1,
+   "label": "Gallery"
+  },
+  {
+   "default": "Gallery",
+   "fieldname": "gallery_title",
+   "fieldtype": "Data",
+   "idx": 2,
+   "label": "Gallery Title"
+  },
+  {
+   "fieldname": "tagline",
+   "fieldtype": "Data",
+   "idx": 3,
+   "label": "Tagline"
+  },
+  {
+   "default": "48",
+   "fieldname": "photos_per_page",
+   "fieldtype": "Int",
+   "idx": 4,
+   "label": "Photos Per Page"
+  },
+  {
+   "default": "5",
+   "description": "Default time each photo is shown in a slideshow (1–120). Visitors can change it in the slideshow toolbar; their browser remembers their choice.",
+   "fieldname": "slideshow_seconds",
+   "fieldtype": "Int",
+   "label": "Slideshow seconds per photo",
+   "non_negative": 1,
+   "idx": 5
+  },
+  {
+   "default": "Date taken (newest first)",
+   "fieldname": "default_album_order",
+   "fieldtype": "Select",
+   "label": "Default album sort",
+   "options": "Date added (newest first)\nDate added (oldest first)\nDate taken (newest first)\nDate taken (oldest first)\nTitle\nMost viewed\nManual",
+   "description": "How photos are ordered in albums (and keyword pages and slideshows) unless an album has its own Photo order. Visitors can still re-sort with the Sort menu.",
+   "idx": 6
+  },
+  {
+   "default": "Name (A to Z)",
+   "description": "How albums are listed on the gallery home page, in the sidebar and as sub-albums. Visitors can change it on the home page. Manual uses each album's Sort order.",
+   "fieldname": "album_order",
+   "fieldtype": "Select",
+   "label": "Album order",
+   "options": "Name (A to Z)\nName (Z to A)\nRecently updated\nNewest albums first\nManual (sort order)"
+  },
+  {
+   "default": "Public",
+   "fieldname": "default_privacy",
+   "fieldtype": "Select",
+   "idx": 7,
+   "label": "Default Privacy",
+   "options": "Public\nConnections\nGroup\nOnly Me"
+  },
+  {
+   "fieldname": "cb_g1",
+   "fieldtype": "Column Break",
+   "idx": 8
+  },
+  {
+   "default": "1",
+   "description": "Users with the Social User role can create their own albums. Gallery Managers always can.",
+   "fieldname": "allow_member_albums",
+   "fieldtype": "Check",
+   "idx": 9,
+   "label": "Members can create albums and upload"
+  },
+  {
+   "default": "0",
+   "description": "0 = use ES Social Settings → Max upload size.",
+   "fieldname": "max_upload_mb",
+   "fieldtype": "Int",
+   "idx": 10,
+   "label": "Max upload size (MB)"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_downloads",
+   "fieldtype": "Check",
+   "idx": 11,
+   "label": "Enable Downloads"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_exif",
+   "fieldtype": "Check",
+   "idx": 12,
+   "label": "Show camera / EXIF details"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_comments",
+   "fieldtype": "Check",
+   "idx": 13,
+   "label": "Enable Comments"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_reactions",
+   "fieldtype": "Check",
+   "idx": 14,
+   "label": "Enable Reactions"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_community_albums",
+   "fieldtype": "Check",
+   "idx": 15,
+   "label": "Show ES Social member albums on gallery home"
+  },
+  {
+   "default": "4",
+   "description": "How many photos to include when an album is posted to the ES Social feed.",
+   "fieldname": "feed_preview_photos",
+   "fieldtype": "Int",
+   "idx": 16,
+   "label": "Photos in feed post"
+  },
+  {
+   "fieldname": "sb_backup",
+   "fieldtype": "Section Break",
+   "label": "Backups",
+   "idx": 17
+  },
+  {
+   "default": "1",
+   "fieldname": "exclude_from_google_drive",
+   "fieldtype": "Check",
+   "label": "Exclude gallery photos from Google Drive backup",
+   "description": "When ticked, the Google Drive backup (Integrations → Google Drive, scheduled or \"Take Backup\") uploads the files archive without the gallery folder public/files/es_photos (uploaded originals and their resized copies). Database, other files and other backups (local bench backups, S3, Dropbox) are unchanged. Back the gallery folder up some other way if you need a copy.",
+   "idx": 18
+  },
+  {
+   "fieldname": "cb_b1",
+   "fieldtype": "Column Break",
+   "idx": 19
+  },
+  {
+   "fieldname": "gallery_storage_note",
+   "fieldtype": "HTML",
+   "label": "Gallery storage",
+   "options": "<div class=\"text-muted small\"><b>Where gallery files live</b><br><code>sites/&lt;site&gt;/public/files/es_photos/originals/</code> — uploaded originals<br><code>sites/&lt;site&gt;/public/files/es_photos/</code> — thumb / medium / large copies<br><br>To keep a copy of the gallery outside Google Drive, back up that folder, e.g.<br><code>rsync -a sites/&lt;site&gt;/public/files/es_photos/ /backup/es_photos/</code></div>",
+   "idx": 20
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-10-28 13:20:00.000000",
+ "modified_by": "Administrator",
+ "module": "ES Photos",
+ "name": "ES Photos Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 0,
+   "print": 1,
+   "read": 1,
+   "report": 0,
+   "role": "System Manager",
+   "share": 0,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 0,
+   "print": 1,
+   "read": 1,
+   "report": 0,
+   "role": "Gallery Manager",
+   "share": 0,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

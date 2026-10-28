@@ -1,0 +1,399 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-10-18 20:30:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "album",
+  "media_type",
+  "image",
+  "video_url",
+  "cb1",
+  "uploaded_by",
+  "date_taken",
+  "date_added",
+  "is_deleted",
+  "sb_desc",
+  "description",
+  "keywords",
+  "additional_albums",
+  "sb_urls",
+  "thumb_url",
+  "medium_url",
+  "cb_u",
+  "large_url",
+  "original_url",
+  "sb_meta",
+  "width",
+  "height",
+  "filesize",
+  "latitude",
+  "longitude",
+  "cb_m",
+  "camera_make",
+  "camera_model",
+  "lens",
+  "focal_length",
+  "aperture",
+  "exposure_time",
+  "iso",
+  "sb_stats",
+  "view_count",
+  "like_count",
+  "comment_count",
+  "cb_s",
+  "sort_order",
+  "social_post",
+  "source_ref",
+  "content_hash"
+ ],
+ "fields": [
+  {
+   "bold": 1,
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "idx": 1,
+   "in_list_view": 1,
+   "label": "Title"
+  },
+  {
+   "fieldname": "album",
+   "fieldtype": "Link",
+   "idx": 2,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Album",
+   "options": "Photo Album",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "default": "Image",
+   "fieldname": "media_type",
+   "fieldtype": "Select",
+   "idx": 3,
+   "in_standard_filter": 1,
+   "label": "Media Type",
+   "options": "Image\nVideo"
+  },
+  {
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "idx": 4,
+   "label": "Image file"
+  },
+  {
+   "depends_on": "eval:doc.media_type=='Video'",
+   "description": "YouTube or Vimeo link.",
+   "fieldname": "video_url",
+   "fieldtype": "Data",
+   "idx": 5,
+   "label": "Video URL",
+   "length": 1000
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break",
+   "idx": 6
+  },
+  {
+   "fieldname": "uploaded_by",
+   "fieldtype": "Link",
+   "idx": 7,
+   "label": "Uploaded By",
+   "options": "User"
+  },
+  {
+   "fieldname": "date_taken",
+   "fieldtype": "Datetime",
+   "idx": 8,
+   "label": "Date Taken",
+   "search_index": 1
+  },
+  {
+   "default": "Now",
+   "fieldname": "date_added",
+   "fieldtype": "Datetime",
+   "idx": 9,
+   "label": "Date Added",
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_deleted",
+   "fieldtype": "Check",
+   "idx": 10,
+   "label": "Hidden / deleted"
+  },
+  {
+   "fieldname": "sb_desc",
+   "fieldtype": "Section Break",
+   "idx": 11,
+   "label": "Description & keywords"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "idx": 12,
+   "label": "Description"
+  },
+  {
+   "fieldname": "keywords",
+   "fieldtype": "Table MultiSelect",
+   "idx": 13,
+   "label": "Keywords",
+   "options": "Photo Keyword Link"
+  },
+  {
+   "fieldname": "additional_albums",
+   "fieldtype": "Table MultiSelect",
+   "idx": 14,
+   "label": "Also show in albums",
+   "options": "Photo Album Membership"
+  },
+  {
+   "collapsible": 1,
+   "description": "Filled automatically for uploads; for imported photos these may point at the source site.",
+   "fieldname": "sb_urls",
+   "fieldtype": "Section Break",
+   "idx": 15,
+   "label": "Image renditions"
+  },
+  {
+   "fieldname": "thumb_url",
+   "fieldtype": "Data",
+   "idx": 16,
+   "label": "Thumbnail URL",
+   "length": 1000
+  },
+  {
+   "fieldname": "medium_url",
+   "fieldtype": "Data",
+   "idx": 17,
+   "label": "Medium URL",
+   "length": 1000
+  },
+  {
+   "fieldname": "cb_u",
+   "fieldtype": "Column Break",
+   "idx": 18
+  },
+  {
+   "fieldname": "large_url",
+   "fieldtype": "Data",
+   "idx": 19,
+   "label": "Large URL",
+   "length": 1000
+  },
+  {
+   "fieldname": "original_url",
+   "fieldtype": "Data",
+   "idx": 20,
+   "label": "Original URL",
+   "length": 1000
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "sb_meta",
+   "fieldtype": "Section Break",
+   "idx": 21,
+   "label": "Details"
+  },
+  {
+   "fieldname": "width",
+   "fieldtype": "Int",
+   "idx": 22,
+   "label": "Width"
+  },
+  {
+   "fieldname": "height",
+   "fieldtype": "Int",
+   "idx": 23,
+   "label": "Height"
+  },
+  {
+   "fieldname": "filesize",
+   "fieldtype": "Int",
+   "idx": 24,
+   "label": "File size (bytes)"
+  },
+  {
+   "fieldname": "latitude",
+   "fieldtype": "Float",
+   "idx": 25,
+   "label": "Latitude",
+   "precision": "6"
+  },
+  {
+   "fieldname": "longitude",
+   "fieldtype": "Float",
+   "idx": 26,
+   "label": "Longitude",
+   "precision": "6"
+  },
+  {
+   "fieldname": "cb_m",
+   "fieldtype": "Column Break",
+   "idx": 27
+  },
+  {
+   "fieldname": "camera_make",
+   "fieldtype": "Data",
+   "idx": 28,
+   "label": "Camera Make"
+  },
+  {
+   "fieldname": "camera_model",
+   "fieldtype": "Data",
+   "idx": 29,
+   "label": "Camera Model"
+  },
+  {
+   "fieldname": "lens",
+   "fieldtype": "Data",
+   "idx": 30,
+   "label": "Lens"
+  },
+  {
+   "fieldname": "focal_length",
+   "fieldtype": "Data",
+   "idx": 31,
+   "label": "Focal Length"
+  },
+  {
+   "fieldname": "aperture",
+   "fieldtype": "Data",
+   "idx": 32,
+   "label": "Aperture"
+  },
+  {
+   "fieldname": "exposure_time",
+   "fieldtype": "Data",
+   "idx": 33,
+   "label": "Exposure Time"
+  },
+  {
+   "fieldname": "iso",
+   "fieldtype": "Int",
+   "idx": 34,
+   "label": "ISO"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "sb_stats",
+   "fieldtype": "Section Break",
+   "idx": 35,
+   "label": "Stats"
+  },
+  {
+   "default": "0",
+   "fieldname": "view_count",
+   "fieldtype": "Int",
+   "idx": 36,
+   "label": "View Count",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "like_count",
+   "fieldtype": "Int",
+   "idx": 37,
+   "label": "Like Count",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "comment_count",
+   "fieldtype": "Int",
+   "idx": 38,
+   "label": "Comment Count",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb_s",
+   "fieldtype": "Column Break",
+   "idx": 39
+  },
+  {
+   "default": "0",
+   "fieldname": "sort_order",
+   "fieldtype": "Int",
+   "idx": 40,
+   "label": "Sort Order"
+  },
+  {
+   "fieldname": "social_post",
+   "fieldtype": "Link",
+   "idx": 41,
+   "label": "Last shared as",
+   "no_copy": 1,
+   "options": "Social Post",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_ref",
+   "fieldtype": "Data",
+   "idx": 42,
+   "label": "Source Ref",
+   "no_copy": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "description": "MD5 of the file as uploaded, used to skip re-uploads of the same photo",
+   "fieldname": "content_hash",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Content hash",
+   "no_copy": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "image_field": "image",
+ "links": [],
+ "modified": "2026-10-26 13:40:00.000000",
+ "modified_by": "Administrator",
+ "module": "ES Photos",
+ "name": "Photo",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Gallery Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "search_fields": "title,album",
+ "sort_field": "date_added",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}
